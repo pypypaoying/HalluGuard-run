@@ -1,0 +1,47 @@
+# Stage 12 HalluGuard-Dynamics external batch config.
+# Validation split is the only policy-fitting split. Test split is final
+# evaluation only.
+
+seed: 23
+
+candidate_id: s12_halluguard_dynamics_batch
+stage9_incumbent_config: experiments/halluguard/configs/halluguard_stage9_random_separation.yaml
+
+method:
+  # Stage 12 method-selection report recommends boundary_only as the default
+  # external variant; dynamics_full remains reported as an ablation.
+  main_variant: boundary_only
+  all_variants:
+    - dynamics_full
+    - boundary_only
+    - boundary_first_diff
+    - boundary_curvature
+    - first_diff_only
+    - curvature_only
+    - matched_smoothing_control
+    - random_trigger
+    - shuffled_score_correction
+    - naive_smoothing
+    - ema_smoothing
+    - median_smoothing
+    - stage9_incumbent
+
+policy:
+  trigger_quantiles: [0.50, 0.70, 0.80, 0.90, 0.95]
+  correction_strengths: [0.10, 0.30, 0.50, 0.80, 1.00]
+  random_separation_weight: 0.50
+  anti_smoothing_weight: 1.00
+  correction_rate_penalty: 0.0002
+  random_seeds: [1101, 2202, 3303, 4404, 5505]
+  smoothing_window: 5
+  ema_alpha: 0.35
+  median_window: 5
+  max_adjustment_ratio: null
+
+fixtures:
+  source_stage7_prediction_dir: experiments/halluguard/results/stage7_big_table/predictions
+  output_dir: experiments/halluguard/results/stage12_external_batch/fixtures/external_batch_clean
+  samples_per_split: 32
+
+outputs:
+  results_dir: experiments/halluguard/results/stage12_external_batch

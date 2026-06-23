@@ -1,0 +1,19 @@
+# Stage 10 open mechanism search.
+# Validation split is the only policy-fitting split. Test split is read only
+# after a candidate policy has been frozen.
+
+seed: 17
+
+stage9_incumbent_config: experiments/halluguard/configs/halluguard_stage9_random_separation.yaml
+
+search:
+  trigger_quantiles: [0.50, 0.70, 0.80, 0.90, 0.95]
+  correction_strengths: [0.10, 0.30, 0.50, 0.80, 1.00]
+  ridge_l2: 1.0
+  random_separation_weight: 0.50
+  anti_smoothing_weight: 1.00
+  correction_rate_penalty: 0.0002
+  random_seeds: [1101, 2202, 3303, 4404, 5505]
+
+stress:
+  types: [trend_drift, high_frequency_perturbation]

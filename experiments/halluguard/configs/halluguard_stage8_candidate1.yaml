@@ -1,0 +1,43 @@
+# Stage 8 candidate 1: validation-calibrated trigger margin and strength.
+# Test split remains final evaluation only.
+
+seed: 7
+
+thresholds:
+  quantiles: [0.80, 0.90, 0.95, 0.99]
+  default_quantile: 0.99
+  source_split: val
+
+correction:
+  lambda_trend_values: [0.1, 0.3, 0.5]
+  lambda_freq_values: [0.1, 0.3, 0.5, 0.8]
+  default_lambda_trend: 0.1
+  default_lambda_freq: 0.5
+  high_freq_cutoff_ratio: 0.5
+  smoothing_window: 5
+  turning_point_guard: true
+  turning_point_guard_min_score: 0.05
+  max_trend_adjustment_ratio: 0.02
+  validation_calibrated_policy:
+    enabled: true
+    write_diagnostics: true
+    objective: mse
+    candidate_quantiles: [0.80, 0.90, 0.95, 0.99]
+    margin_factors: [0.0, 0.25, 0.50, 1.0]
+    lambda_trend_values: [0.0, 0.1, 0.3, 0.5]
+    lambda_freq_values: [0.0, 0.1, 0.3, 0.5, 0.8]
+    require_positive_gain: true
+    min_relative_gain_pct: 0.0
+    correction_rate_penalty: 0.0001
+    random_seeds: [1101, 2202, 3303, 4404, 5505]
+
+variants:
+  - no_correction
+  - naive_smoothing
+  - trend_only
+  - frequency_only
+  - trend_frequency
+  - random_trigger
+
+outputs:
+  results_dir: experiments/halluguard/results/stage8_real_signal_repair

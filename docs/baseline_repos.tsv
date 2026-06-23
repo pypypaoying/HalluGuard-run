@@ -1,0 +1,10 @@
+module	venue	status	repo_url	verified_commit	notes
+RevIN	ICLR 2022	verified	https://github.com/ts-kim/RevIN.git	fee40bc6c87cb536d048bcf1c14c4ed644b875e1	Core reversible instance normalization baseline.
+Dish-TS	AAAI 2023	verified	https://github.com/weifantt/Dish-TS.git	e674d3b94b832491f63a533d60e40a75031d2c75	Model-agnostic distribution-shift baseline.
+SAN	NeurIPS 2023	verified	https://github.com/icantnamemyself/SAN.git	7e1ca66251a91a89290846b310145c5f5db3ffc3	Adaptive normalization baseline.
+SIN	ICML 2024	needs_source	TBD	TBD	Find official source before running; do not use unverified implementation.
+FAN	NeurIPS 2024	needs_source	TBD	TBD	Find official source before running; do not use unverified implementation.
+DDN	NeurIPS 2024	needs_source	TBD	TBD	Find official source before running; do not use unverified implementation.
+CCM	NeurIPS 2024	needs_source	TBD	TBD	Find official source before running; do not use unverified implementation.
+LIFT	ICLR 2024	needs_source	TBD	TBD	Find official source before running; do not use unverified implementation.
+TAFAS	AAAI 2025	conditional	TBD	TBD	Use only for streaming/partial-label TTA setting.

@@ -1,0 +1,105 @@
+# Stage 14 Signal-Preserving Component Router config.
+# All component thresholds and action choices are fit on validation samples only.
+
+seed: 23
+candidate_id: s14_signal_preserve_router
+stage9_incumbent_config: experiments/halluguard/configs/halluguard_stage9_random_separation.yaml
+stage13_router_config: experiments/halluguard/configs/halluguard_stage13_adaptive_router.yaml
+
+data:
+  stage7_prediction_dir: experiments/halluguard/results/stage7_big_table/predictions
+  external_fixture_dir: experiments/halluguard/results/stage12_external_batch/fixtures/external_batch_clean
+
+outputs:
+  results_dir: experiments/halluguard/results/stage14_signal_preserve
+
+method:
+  main_router: signal_preserve_router
+  parent_method: stage13_rule_router
+  candidate_actions:
+    - no_correction
+    - boundary_only
+    - dynamics_full
+    - median_smoothing
+    - ema_smoothing
+    - naive_smoothing
+  signal_variants:
+    - signal_preserve_router
+    - component_router_without_signal_support
+    - signal_support_only_ablation
+  baselines:
+    - no_correction
+    - boundary_only
+    - dynamics_full
+    - median_smoothing
+    - ema_smoothing
+    - naive_smoothing
+    - stage13_rule_router
+    - matched_smoothing_control
+    - random_action_router
+    - validation_best_single_action
+    - stage9_incumbent
+    - oracle_test_ceiling
+
+policy:
+  trigger_quantiles: [0.50, 0.70, 0.80, 0.90, 0.95]
+  correction_strengths: [0.10, 0.30, 0.50, 0.80, 1.00]
+  random_separation_weight: 0.50
+  anti_smoothing_weight: 1.00
+  correction_rate_penalty: 0.0002
+  random_seeds: [1101, 2202, 3303, 4404, 5505]
+  smoothing_window: 5
+  ema_alpha: 0.35
+  median_window: 5
+  max_adjustment_ratio: null
+
+router:
+  random_seeds: [1101, 2202, 3303, 4404, 5505]
+  feature_names:
+    - boundary_score
+    - first_diff_score
+    - curvature_score
+    - high_frequency_excess
+    - spectral_distance
+    - pred_context_variance_ratio
+    - pred_context_diff_std_ratio
+    - context_volatility
+    - horizon
+  tree_max_depth: 3
+  min_samples_leaf: 24
+  logistic_l2: 0.05
+  logistic_learning_rate: 0.08
+  logistic_steps: 500
+  benefit_margin_pct: 0.02
+  harm_abstain_margin_pct: 0.03
+  rule_boundary_quantile: 0.75
+  rule_noise_quantile: 0.80
+  rule_low_risk_quantile: 0.35
+  rule_fallback_action: no_correction
+  action_harm_cap_pct: 3.0
+  prefer_no_action_margin_pct: 0.005
+
+signal_preserve:
+  boundary_quantiles: [0.70, 0.75, 0.80]
+  roughness_quantiles: [0.70, 0.80, 0.85]
+  support_quantiles: [0.35, 0.45, 0.55]
+  extreme_roughness_quantiles: [0.85, 0.90]
+  smoothing_actions:
+    - median_smoothing
+    - ema_smoothing
+    - naive_smoothing
+  random_seeds: [1101, 2202, 3303, 4404, 5505]
+  random_separation_weight: 0.35
+  matched_smoothing_weight: 0.60
+  correction_rate_penalty: 0.0002
+  degeneracy_penalty: 0.40
+  max_single_action_rate: 0.90
+
+stress:
+  types:
+    - boundary_discontinuity
+    - trend_drift
+    - slope_break
+    - delayed_level_shift
+    - high_frequency_perturbation
+    - variance_shift

@@ -1,0 +1,52 @@
+# HalluGuard MVP default config.
+# Autoresearcher may edit values, but must not tune them on test split.
+
+seed: 7
+
+data:
+  source: synthetic_stress
+  n_train: 512
+  n_val: 256
+  n_test: 512
+  context_len: 96
+  horizon: 24
+  n_channels: 1
+  calibration_stress_types:
+    - clean
+  stress_types:
+    - clean
+    - trend_drift
+    - high_frequency_noise
+    - local_oscillation
+    - real_turning_point
+
+thresholds:
+  quantiles: [0.90, 0.95, 0.99]
+  default_quantile: 0.99
+  source_split: val
+
+correction:
+  lambda_trend_values: [0.1, 0.3, 0.5]
+  lambda_freq_values: [0.1, 0.3, 0.5]
+  default_lambda_trend: 0.1
+  default_lambda_freq: 0.5
+  high_freq_cutoff_ratio: 0.5
+  smoothing_window: 5
+  turning_point_guard: true
+  turning_point_guard_min_score: 0.05
+  max_trend_adjustment_ratio: 0.02
+
+variants:
+  - no_correction
+  - naive_smoothing
+  - trend_only
+  - frequency_only
+  - trend_frequency
+  - random_trigger
+
+outputs:
+  results_dir: experiments/halluguard/results
+  metrics_json: experiments/halluguard/results/metrics.json
+  metrics_csv: experiments/halluguard/results/metrics.csv
+  ablation_table: experiments/halluguard/results/ablation_table.md
+  summary: experiments/halluguard/results/summary.md

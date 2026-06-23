@@ -1,0 +1,98 @@
+# Stage 13 Adaptive HalluGuard Router config.
+# Validation rows fit all action policies, router thresholds, and learned router
+# parameters. Test rows are used only after the router policy is frozen.
+
+seed: 23
+candidate_id: s13_adaptive_halluguard_router
+stage9_incumbent_config: experiments/halluguard/configs/halluguard_stage9_random_separation.yaml
+
+data:
+  stage7_prediction_dir: experiments/halluguard/results/stage7_big_table/predictions
+  external_fixture_dir: experiments/halluguard/results/stage12_external_batch/fixtures/external_batch_clean
+
+outputs:
+  results_dir: experiments/halluguard/results/stage13_adaptive_router
+
+method:
+  # Smoke showed the learned/harm-aware router was smoothing-heavy and nearly
+  # degenerate; use the interpretable non-degenerate rule router as the Stage
+  # 13 deployable candidate.
+  main_router: rule_router
+  parent_method: boundary_only
+  candidate_actions:
+    - no_correction
+    - boundary_only
+    - dynamics_full
+    - median_smoothing
+    - ema_smoothing
+    - naive_smoothing
+  optional_actions:
+    - boundary_then_ema
+    - boundary_then_median
+  router_variants:
+    - rule_router
+    - shallow_tree_router
+    - logistic_router
+    - harm_aware_router
+    - oracle_val_policy
+    - oracle_test_ceiling
+  baselines:
+    - no_correction
+    - boundary_only
+    - dynamics_full
+    - median_smoothing
+    - ema_smoothing
+    - naive_smoothing
+    - matched_smoothing_control
+    - random_trigger
+    - random_action_router
+    - shuffled_feature_router
+    - validation_best_single_action
+    - stage9_incumbent
+
+policy:
+  trigger_quantiles: [0.50, 0.70, 0.80, 0.90, 0.95]
+  correction_strengths: [0.10, 0.30, 0.50, 0.80, 1.00]
+  random_separation_weight: 0.50
+  anti_smoothing_weight: 1.00
+  correction_rate_penalty: 0.0002
+  random_seeds: [1101, 2202, 3303, 4404, 5505]
+  smoothing_window: 5
+  ema_alpha: 0.35
+  median_window: 5
+  max_adjustment_ratio: null
+
+router:
+  random_seeds: [1101, 2202, 3303, 4404, 5505]
+  feature_names:
+    - boundary_score
+    - first_diff_score
+    - curvature_score
+    - high_frequency_excess
+    - spectral_distance
+    - pred_context_variance_ratio
+    - pred_context_diff_std_ratio
+    - context_volatility
+    - horizon
+  tree_max_depth: 3
+  min_samples_leaf: 24
+  logistic_l2: 0.05
+  logistic_learning_rate: 0.08
+  logistic_steps: 500
+  benefit_margin_pct: 0.02
+  harm_abstain_margin_pct: 0.03
+  rule_boundary_quantile: 0.75
+  rule_noise_quantile: 0.80
+  rule_low_risk_quantile: 0.35
+  rule_fallback_action: no_correction
+  action_harm_cap_pct: 3.0
+  prefer_no_action_margin_pct: 0.005
+
+stress:
+  types:
+    - boundary_discontinuity
+    - trend_drift
+    - slope_break
+    - delayed_level_shift
+    - high_frequency_perturbation
+    - variance_shift

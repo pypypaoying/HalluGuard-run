@@ -1,0 +1,23 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+env/
+
+# Generated experiment outputs. The repository contains code, configs, small
+# fixtures, and ETT CSVs; full result tables are regenerated on the server.
+experiments/halluguard/results/
+external_predictions/
+baseline_predictions/
+
+# Local run logs and checkpoints.
+*.log
+*.pt
+*.pth
+*.ckpt
+runs/
+wandb/
+
+# Keep vendored lightweight external code/data, but not nested git metadata.
+external/**/.git/
