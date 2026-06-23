@@ -1,7 +1,9 @@
-# Full Baseline Table Run Guide
+# Frozen Core Table Run Guide
 
-This guide is the run contract for reproducing HalluGuard tables and for adding
-top-conference plug-in baselines on the same forecasting backbones.
+This guide is the run contract for the HalluGuard core table. The goal is to
+compare the frozen HalluGuard-SP method against same-position test-time,
+adaptation, normalization, and smoothing baselines. It is not an autosearch
+workflow.
 
 ## 1. Environment
 
@@ -27,11 +29,35 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-If the server has CUDA, install the matching PyTorch wheel according to the
-official PyTorch instructions. The committed `environment.yml` intentionally
-uses a CPU-safe `torch>=2.1` default so it does not pin the wrong CUDA wheel.
+For CUDA servers, install the matching PyTorch wheel according to the official
+PyTorch instructions before or after installing `requirements.txt`. The repo
+keeps a CPU-safe `torch>=2.1` default.
 
-## 2. Sanity Checks
+## 2. Download Datasets and Official Baseline Repos
+
+Core datasets:
+
+```bash
+python scripts/fetch_core_datasets.py --datasets core
+```
+
+Core plus optional extended datasets:
+
+```bash
+python scripts/fetch_core_datasets.py --datasets extended
+```
+
+Official same-position baseline repositories:
+
+```bash
+bash scripts/fetch_plugin_repos.sh
+```
+
+The script fetches RevIN, Dish-TS, SAN, Non-stationary Transformer / NST, and
+TAFAS under `external/plugin_baselines/` at the pinned commits listed in
+`docs/core_table_manifest.yaml`.
+
+## 3. Sanity Checks
 
 ```bash
 python experiments/halluguard/run_mvp.py \
@@ -51,7 +77,7 @@ python external/halluguard_real_pipeline/export_predictions.py \
   --device auto
 ```
 
-Then evaluate the smoke prediction file:
+Evaluate the smoke prediction file:
 
 ```bash
 python experiments/halluguard/evaluate_predictions.py \
@@ -62,20 +88,12 @@ python experiments/halluguard/evaluate_predictions.py \
   --output-dir experiments/halluguard/results/smoke_eval/ETTm1_DLinear_96
 ```
 
-## 3. Regenerate the Original Stage 7 Clean Table
+## 4. Raw Backbone Prediction Export
 
-This trains lightweight DLinear/PatchTST forecasters on ETTm1/ETTh1 and exports
-validation/test predictions for horizons 96/192/336/720.
+This regenerates the original ETT clean prediction files for DLinear/PatchTST.
 
 ```bash
-python experiments/halluguard/run_real_table.py \
-  --scope stage7 \
-  --config experiments/halluguard/configs/halluguard_mvp.yaml \
-  --data-root external/ETDataset \
-  --epochs 2 \
-  --max-train-windows 4096 \
-  --max-eval-windows 512 \
-  --device auto
+bash scripts/run_stage7_table.sh
 ```
 
 Primary outputs:
@@ -83,92 +101,61 @@ Primary outputs:
 ```text
 experiments/halluguard/results/stage7_big_table/predictions/*.jsonl
 experiments/halluguard/results/stage7_big_table/combined_metrics.csv
-experiments/halluguard/results/stage7_big_table/combined_ablation_table.md
 experiments/halluguard/results/stage7_big_table/summary.md
 ```
 
-## 4. Run the Current HalluGuard Router Line
+## 5. Frozen HalluGuard Lines
 
-After Stage 7 predictions exist:
+Main frozen method:
 
 ```bash
-python experiments/halluguard/run_stage13_adaptive_router.py \
-  --scope clean_full \
-  --config experiments/halluguard/configs/halluguard_stage13_adaptive_router.yaml
-
 python experiments/halluguard/run_stage14_autosearch.py \
   --scope clean_full \
-  --config experiments/halluguard/configs/halluguard_stage14_autosearch.yaml
+  --config experiments/halluguard/configs/halluguard_core_table_sp_frozen.yaml
 ```
 
-For stress tables, use the resume helper because the full 96-config stress table
-can exceed terminal timeouts:
+Stable-harm ablation:
 
 ```bash
-python experiments/halluguard/run_stage14_stress_resume.py \
-  --config experiments/halluguard/configs/halluguard_stage14_autosearch.yaml \
-  --stress-types boundary_discontinuity
-
-python experiments/halluguard/run_stage14_stress_resume.py \
-  --config experiments/halluguard/configs/halluguard_stage14_autosearch.yaml \
-  --stress-types trend_drift
-
-python experiments/halluguard/run_stage14_stress_resume.py \
-  --config experiments/halluguard/configs/halluguard_stage14_autosearch.yaml \
-  --stress-types slope_break
-
-python experiments/halluguard/run_stage14_stress_resume.py \
-  --config experiments/halluguard/configs/halluguard_stage14_autosearch.yaml \
-  --stress-types delayed_level_shift
-
-python experiments/halluguard/run_stage14_stress_resume.py \
-  --config experiments/halluguard/configs/halluguard_stage14_autosearch.yaml \
-  --stress-types high_frequency_perturbation
-
-python experiments/halluguard/run_stage14_stress_resume.py \
-  --config experiments/halluguard/configs/halluguard_stage14_autosearch.yaml \
-  --stress-types variance_shift
+python experiments/halluguard/run_stage14_autosearch.py \
+  --scope clean_full \
+  --config experiments/halluguard/configs/halluguard_core_table_stable_harm.yaml
 ```
 
-## 5. Advanced Plug-in Baseline Table
+The command name still says `run_stage14_autosearch.py` because it reuses the
+existing evaluator, but these two configs are frozen and do not select new
+candidates.
 
-For each top-conference plug-in baseline, train the same backbone/dataset/horizon
-and export predictions using the schema in
-`experiments/halluguard/EXTERNAL_PREDICTION_SCHEMA.md`.
+## 6. Official Baseline Prediction Export
 
-Required fields:
+Each official baseline should be run from its pinned source snapshot and export
+the common schema:
 
 ```text
 sample_id, dataset, model, split, context, prediction, target
 ```
 
-Recommended model labels:
+Place exported files under:
 
 ```text
-DLinear
+baseline_predictions/core_table/
+```
+
+Recommended labels:
+
+```text
+DLinear+raw_no_correction
 DLinear+RevIN
 DLinear+DishTS
 DLinear+SAN
-DLinear+SIN
-DLinear+FAN
-DLinear+DDN
-DLinear+CCM
-DLinear+LIFT
-PatchTST
+DLinear+NST
+DLinear+TAFAS
+PatchTST+raw_no_correction
 PatchTST+RevIN
 PatchTST+DishTS
 PatchTST+SAN
-PatchTST+SIN
-PatchTST+FAN
-PatchTST+DDN
-PatchTST+CCM
-PatchTST+LIFT
-```
-
-Put all exported baseline prediction files in:
-
-```text
-baseline_predictions/
+PatchTST+NST
+PatchTST+TAFAS
 ```
 
 Then run:
@@ -176,31 +163,45 @@ Then run:
 ```bash
 python experiments/halluguard/run_stage12_external_batch.py \
   --config experiments/halluguard/configs/halluguard_stage12_external_batch.yaml \
-  --input-dir baseline_predictions \
+  --input-dir baseline_predictions/core_table \
   --recursive \
   --continue-on-error \
-  --output-dir experiments/halluguard/results/plugin_baseline_external_batch
+  --output-dir experiments/halluguard/results/core_table/external_baselines
 ```
 
-This evaluates every external prediction table with validation-only calibration
-and produces aggregate CSV/markdown outputs.
+## 7. One-Command Local Harness
 
-## 6. Required Reporting Fields
+The helper below downloads data/repos, regenerates raw ETT predictions, runs the
+two frozen HalluGuard configs, and evaluates external baseline predictions if
+`baseline_predictions/core_table/` already exists:
 
-For each dataset/model/horizon/plugin row, keep:
+```bash
+bash scripts/run_core_table.sh
+```
+
+Environment overrides:
+
+```bash
+DATASET_SET=extended DEVICE=cuda EPOCHS=10 bash scripts/run_core_table.sh
+```
+
+## 8. Required Reporting Fields
+
+For each dataset/backbone/horizon/method row, keep:
 
 - dataset
 - backbone
-- plug-in module
+- method
 - horizon
 - n validation samples
 - n test samples
 - MSE
 - MAE
-- delta vs original backbone
-- delta vs HalluGuard router
+- delta vs raw backbone
+- delta vs HalluGuard-SP frozen
 - validation-only calibration flag
 - output prediction path
 - blocker reason, if any
 
-Do not tune thresholds, routers, or baseline choices on test targets.
+Do not tune thresholds, routers, action choices, or baseline hyperparameters on
+test targets.

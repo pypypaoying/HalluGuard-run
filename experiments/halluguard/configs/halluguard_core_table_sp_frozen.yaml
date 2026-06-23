@@ -1,0 +1,82 @@
+# Frozen core-table config for HalluGuard-SP.
+# This is an evaluation config, not an autosearch config.
+
+seed: 23
+candidate_id: s14_smoothing_cap_selective_router
+stage9_incumbent_config: experiments/halluguard/configs/halluguard_stage9_random_separation.yaml
+stage13_router_config: experiments/halluguard/configs/halluguard_stage13_adaptive_router.yaml
+
+data:
+  stage7_prediction_dir: experiments/halluguard/results/stage7_big_table/predictions
+  external_fixture_dir: experiments/halluguard/results/stage12_external_batch/fixtures/external_batch_clean
+
+outputs:
+  results_dir: experiments/halluguard/results/core_table/halluguard_sp_frozen
+
+method:
+  evaluator: adaptive_router
+  main_router: smoothing_cap_selective_router
+  candidate_actions:
+    - no_correction
+    - boundary_only
+    - dynamics_full
+    - boundary_then_selective_median
+    - median_smoothing
+    - ema_smoothing
+    - naive_smoothing
+  router_variants:
+    - smoothing_cap_selective_router
+    - stable_smoothing_cap_router
+    - matched_smoothing_control
+    - random_action_router
+    - validation_best_single_action
+    - stage13_rule_router
+  baselines:
+    - no_correction
+    - boundary_only
+    - dynamics_full
+    - median_smoothing
+    - ema_smoothing
+    - naive_smoothing
+    - matched_smoothing_control
+    - random_action_router
+    - validation_best_single_action
+    - stage9_incumbent
+
+policy:
+  random_seeds: [1101, 2202, 3303, 4404, 5505]
+  smoothing_window: 5
+  ema_alpha: 0.35
+  median_window: 5
+
+router:
+  random_seeds: [1101, 2202, 3303, 4404, 5505]
+  feature_names:
+    - boundary_score
+    - first_diff_score
+    - curvature_score
+    - high_frequency_excess
+    - spectral_distance
+    - pred_context_variance_ratio
+    - pred_context_diff_std_ratio
+    - context_volatility
+    - horizon
+  smoothing_cap_margin_quantiles: [0.10, 0.25, 0.40, 0.55, 0.70]
+  smoothing_cap_rate_penalty: 0.0002
+  smoothing_cap_degeneracy_penalty: 10.0
+  action_harm_cap_pct: 3.0
+
+signal_preserve:
+  smoothing_actions:
+    - boundary_then_selective_median
+  selective_residual_quantile: 0.75
+  selective_smoothing_strength: 0.65
+
+stress:
+  types:
+    - boundary_discontinuity
+    - trend_drift
+    - slope_break
+    - delayed_level_shift
+    - high_frequency_perturbation
+    - variance_shift

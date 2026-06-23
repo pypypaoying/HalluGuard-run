@@ -3,7 +3,7 @@ set -euo pipefail
 
 python experiments/halluguard/run_stage14_autosearch.py \
   --scope clean_full \
-  --config experiments/halluguard/configs/halluguard_stage14_autosearch.yaml
+  --config experiments/halluguard/configs/halluguard_core_table_sp_frozen.yaml
 
 for stress_type in \
   boundary_discontinuity \
@@ -14,10 +14,10 @@ for stress_type in \
   variance_shift
 do
   python experiments/halluguard/run_stage14_stress_resume.py \
-    --config experiments/halluguard/configs/halluguard_stage14_autosearch.yaml \
+    --config experiments/halluguard/configs/halluguard_core_table_sp_frozen.yaml \
     --stress-types "${stress_type}"
 done
 
 python experiments/halluguard/run_stage14_autosearch.py \
   --scope external_batch \
-  --config experiments/halluguard/configs/halluguard_stage14_autosearch.yaml
+  --config experiments/halluguard/configs/halluguard_core_table_sp_frozen.yaml

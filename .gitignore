@@ -10,6 +10,8 @@ env/
 experiments/halluguard/results/
 external_predictions/
 baseline_predictions/
+external/plugin_baselines/
+external/Time-Series-Library/dataset/
 
 # Local run logs and checkpoints.
 *.log
