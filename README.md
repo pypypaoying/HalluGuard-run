@@ -27,7 +27,19 @@ cd HalluGuard-run
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
+```
 
+Or use the prepared setup script:
+
+```bash
+bash scripts/setup_env.sh
+conda activate halluguard-run  # when conda is available
+source .venv/bin/activate      # when the script falls back to venv
+```
+
+Then run:
+
+```bash
 python experiments/halluguard/run_mvp.py \
   --config experiments/halluguard/configs/halluguard_mvp.yaml \
   --quick

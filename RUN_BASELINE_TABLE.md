@@ -5,14 +5,31 @@ top-conference plug-in baselines on the same forecasting backbones.
 
 ## 1. Environment
 
+Preferred:
+
+```bash
+bash scripts/setup_env.sh
+conda activate halluguard-run
+```
+
+Manual conda route:
+
+```bash
+conda env create -f environment.yml
+conda activate halluguard-run
+```
+
+Manual venv route:
+
 ```bash
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-If the server has CUDA, install the matching PyTorch wheel before or after the
-requirements step according to the official PyTorch instructions.
+If the server has CUDA, install the matching PyTorch wheel according to the
+official PyTorch instructions. The committed `environment.yml` intentionally
+uses a CPU-safe `torch>=2.1` default so it does not pin the wrong CUDA wheel.
 
 ## 2. Sanity Checks
 
