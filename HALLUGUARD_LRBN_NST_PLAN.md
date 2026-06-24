@@ -40,10 +40,17 @@ duplicating RevIN/LRBN center-scale normalization?
    - Diagnostic only, because it is an ensemble-style upper-bound on
      complementarity rather than a single normalization mechanism.
 
+3. `lrbn_nst_feature_gate`
+   - Train two branches, but choose the LRBN/NST blend from target-free context
+     features: robust-vs-instance scale, boundary displacement, tail-median
+     displacement, roughness ratio, and last derivative.
+   - This is a deployable candidate if it improves over the parent without
+     becoming just a fixed output blend.
+
 ## Smoke
 
 ```bash
-LRBN_NST_VARIANTS=unified_revin_rdn_hybrid,nst_lightweight,lrbn_unified_nst_residual,lrbn_nst_output_blend \
+LRBN_NST_VARIANTS=unified_revin_rdn_hybrid,nst_lightweight,lrbn_unified_nst_residual,lrbn_nst_output_blend,lrbn_nst_feature_gate \
 DATASET_SET=ETTm1 MODELS=DLinear,PatchTST HORIZONS=96 \
 EPOCHS=1 MAX_TRAIN_WINDOWS=128 MAX_EVAL_WINDOWS=32 \
   bash scripts/run_halluguard_lrbn_nst_table.sh
@@ -56,7 +63,7 @@ margin.
 ## Full Run
 
 ```bash
-LRBN_NST_VARIANTS=unified_revin_rdn_hybrid,nst_lightweight,lrbn_unified_nst_residual,lrbn_nst_output_blend \
+LRBN_NST_VARIANTS=unified_revin_rdn_hybrid,nst_lightweight,lrbn_unified_nst_residual,lrbn_nst_output_blend,lrbn_nst_feature_gate \
 DEVICE=cuda EPOCHS=10 MAX_TRAIN_WINDOWS=8192 MAX_EVAL_WINDOWS=1024 \
   bash scripts/run_halluguard_lrbn_nst_table.sh
 ```

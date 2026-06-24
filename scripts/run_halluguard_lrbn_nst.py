@@ -99,6 +99,46 @@ class LRBNNSTOutputBlend(nn.Module):
         return blend * self.lrbn_branch(x) + (1.0 - blend) * self.nst_branch(x)
 
 
+class LRBNNSTFeatureGate(nn.Module):
+    """Train-split context gate that chooses between LRBN and NST branches."""
+
+    def __init__(self, lrbn_base: nn.Module, nst_base: nn.Module, tail_len: int, hidden: int = 8, eps: float = 1e-5):
+        super().__init__()
+        self.lrbn_branch = lrbn.UnifiedRevINRDNHybrid(lrbn_base, tail_len, eps=eps)
+        self.nst_branch = NSTLightweight(nst_base, eps=eps)
+        self.tail_len = int(tail_len)
+        self.eps = float(eps)
+        self.gate = nn.Sequential(nn.Linear(5, hidden), nn.GELU(), nn.Linear(hidden, 1))
+        with torch.no_grad():
+            self.gate[-1].weight.zero_()
+            self.gate[-1].bias.fill_(lrbn.logit(0.75))
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        lrbn_pred = self.lrbn_branch(x)
+        nst_pred = self.nst_branch(x)
+        features = self._features(x)
+        lrbn_weight = torch.sigmoid(self.gate(features)).view(-1, 1, 1)
+        return lrbn_weight * lrbn_pred + (1.0 - lrbn_weight) * nst_pred
+
+    def _features(self, x: torch.Tensor) -> torch.Tensor:
+        last, tail_median, robust_scale, instance = lrbn.context_stats(x, self.tail_len, self.eps)
+        instance_mean, instance_std = instance
+        diff = x[:, 1:, :] - x[:, :-1, :]
+        diff_std = torch.sqrt(torch.var(diff, dim=1, keepdim=True, unbiased=False) + self.eps)
+        last_diff = torch.abs(x[:, -1:, :] - x[:, -2:-1, :])
+        denom = instance_std + self.eps
+        return torch.cat(
+            [
+                (robust_scale / denom).squeeze(1),
+                (torch.abs(last - instance_mean) / denom).squeeze(1),
+                (torch.abs(last - tail_median) / denom).squeeze(1),
+                (diff_std / denom).squeeze(1),
+                (last_diff / denom).squeeze(1),
+            ],
+            dim=-1,
+        ).detach()
+
+
 ORIGINAL_BUILD_VARIANT_MODEL = lrbn.build_variant_model
 
 
@@ -114,11 +154,18 @@ def build_variant_model(variant: str, backbone: str, seq_len: int, pred_len: int
             tail_len,
             eps=eps,
         )
+    if variant == "lrbn_nst_feature_gate":
+        return LRBNNSTFeatureGate(
+            lrbn.exporter.build_model(backbone, seq_len, pred_len),
+            lrbn.exporter.build_model(backbone, seq_len, pred_len),
+            tail_len,
+            eps=eps,
+        )
     return ORIGINAL_BUILD_VARIANT_MODEL(variant, backbone, seq_len, pred_len, tail_len, eps)
 
 
 def main() -> None:
-    lrbn.VARIANTS = tuple(dict.fromkeys((*lrbn.VARIANTS, "nst_lightweight", "lrbn_unified_nst_residual", "lrbn_nst_output_blend")))
+    lrbn.VARIANTS = tuple(dict.fromkeys((*lrbn.VARIANTS, "nst_lightweight", "lrbn_unified_nst_residual", "lrbn_nst_output_blend", "lrbn_nst_feature_gate")))
     lrbn.build_variant_model = build_variant_model
     lrbn.main()
 
