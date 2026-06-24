@@ -50,6 +50,15 @@ python experiments/halluguard/run_mvp.py \
 
 For the full server workflow, see `RUN_BASELINE_TABLE.md`.
 
+To run the unified 12-method same-configuration table:
+
+```bash
+bash scripts/run_core12_table.sh
+```
+
+The final table is written to
+`experiments/halluguard/results/core_table/core12_combined/`.
+
 ## Frozen HalluGuard Lines
 
 - Main method: `HalluGuard-SP frozen`

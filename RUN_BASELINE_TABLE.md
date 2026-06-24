@@ -185,7 +185,58 @@ Environment overrides:
 DATASET_SET=extended DEVICE=cuda EPOCHS=10 bash scripts/run_core_table.sh
 ```
 
-## 8. Required Reporting Fields
+## 8. Unified 12-Method Core Table
+
+For the fair same-configuration table, use the unified core-12 runner:
+
+```bash
+bash scripts/run_core12_table.sh
+```
+
+This command uses one shared matrix:
+
+```text
+datasets: ETTm1, ETTh1
+backbones: DLinear, PatchTST
+horizons: 96, 192, 336, 720
+methods: raw_no_correction, HalluGuard-SP frozen, stable-harm ablation,
+         matched_sparse_smoothing, naive_smoothing, ema_smoothing,
+         median_smoothing, RevIN, DishTS, SAN, NST, TAFAS
+```
+
+The official baseline entries are exported through
+`scripts/run_core12_predictions.py` using a shared lightweight fair adapter
+around the local DLinear/PatchTST exporter. This is intentionally stricter than
+manually mixing different official scripts: every method shares the same data
+split, context length, horizon, seed policy, training-window budget,
+evaluation-window budget, and JSONL schema. It should be reported as
+`adapter_mode=lightweight_fair_adapter`, not as a full reproduction of each
+official repository's leaderboard setup.
+
+Useful overrides:
+
+```bash
+DEVICE=cuda EPOCHS=10 MAX_TRAIN_WINDOWS=8192 MAX_EVAL_WINDOWS=1024 \
+  bash scripts/run_core12_table.sh
+```
+
+Fast smoke:
+
+```bash
+DATASET_SET=ETTm1 MODELS=DLinear HORIZONS=96 METHODS=RevIN,DishTS \
+EPOCHS=1 MAX_TRAIN_WINDOWS=128 MAX_EVAL_WINDOWS=16 \
+  bash scripts/run_core12_table.sh
+```
+
+Final combined outputs:
+
+```text
+experiments/halluguard/results/core_table/core12_combined/core12_metrics.csv
+experiments/halluguard/results/core_table/core12_combined/core12_summary.csv
+experiments/halluguard/results/core_table/core12_combined/summary.md
+```
+
+## 9. Required Reporting Fields
 
 For each dataset/backbone/horizon/method row, keep:
 

@@ -124,3 +124,26 @@ python experiments/halluguard/run_stage12_external_batch.py \
 
 The output is an aggregate CSV/markdown report with validation-only calibration
 flags and blocker reasons.
+
+## Unified Core-12 Runner
+
+The preferred full-table command is:
+
+```bash
+bash scripts/run_core12_table.sh
+```
+
+This runner first validates frozen HalluGuard configs, fetches data and official
+source snapshots, regenerates the local HalluGuard/control table, exports
+official-method predictions through a shared lightweight fair adapter, evaluates
+those predictions, and builds:
+
+```text
+experiments/halluguard/results/core_table/core12_combined/core12_metrics.csv
+```
+
+Important caveat: the official-method rows produced by
+`scripts/run_core12_predictions.py` use `adapter_mode=lightweight_fair_adapter`.
+They are fair for the HalluGuard core-table question because they share the same
+backbone, windows, split, budget, and schema, but they are not full official
+leaderboard reproductions.
