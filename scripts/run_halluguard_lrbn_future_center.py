@@ -107,6 +107,78 @@ class FutureCenterSelector(nn.Module):
         return anchors, scale, features
 
 
+class FutureCenterResidualShift(nn.Module):
+    """Parent LRBN center plus a bounded learned shift toward candidate anchors."""
+
+    def __init__(
+        self,
+        base: nn.Module,
+        tail_len: int,
+        init_beta: float = 0.7,
+        init_gamma: float = 0.35,
+        max_shift: float = 0.35,
+        hidden: int = 8,
+        eps: float = 1e-5,
+    ):
+        super().__init__()
+        self.base = base
+        self.tail_len = int(tail_len)
+        self.beta_logit = nn.Parameter(lrbn.logit_tensor(init_beta))
+        self.gamma_logit = nn.Parameter(lrbn.logit_tensor(init_gamma))
+        self.max_shift = float(max_shift)
+        self.selector = nn.Sequential(nn.Linear(6, hidden), nn.GELU(), nn.Linear(hidden, 3))
+        self.shift_gate = nn.Sequential(nn.Linear(6, hidden), nn.GELU(), nn.Linear(hidden, 1))
+        self.eps = float(eps)
+        with torch.no_grad():
+            self.selector[-1].weight.zero_()
+            self.selector[-1].bias.zero_()
+            self.shift_gate[-1].weight.zero_()
+            self.shift_gate[-1].bias.fill_(-2.0)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        last, tail_median, robust_scale, instance = lrbn.context_stats(x, self.tail_len, self.eps)
+        instance_mean, instance_std = instance
+        tail = x[:, -max(4, min(self.tail_len, x.shape[1])) :, :]
+        idx = torch.linspace(-1.0, 0.0, tail.shape[1], device=x.device, dtype=x.dtype).view(1, -1, 1)
+        idx = idx - idx.mean(dim=1, keepdim=True)
+        denom = torch.sum(idx * idx, dim=1, keepdim=True).clamp_min(self.eps)
+        slope = torch.sum((tail - tail.mean(dim=1, keepdim=True)) * idx, dim=1, keepdim=True) / denom
+        trend_anchor = last + slope
+        boundary_anchor = 0.85 * last + 0.15 * tail_median
+        beta = torch.sigmoid(self.beta_logit)
+        parent_center = beta * boundary_anchor + (1.0 - beta) * instance_mean
+        candidates = torch.stack(
+            [
+                boundary_anchor - parent_center,
+                tail_median - parent_center,
+                trend_anchor - parent_center,
+            ],
+            dim=1,
+        )
+        diff = x[:, 1:, :] - x[:, :-1, :]
+        diff_std = torch.sqrt(torch.var(diff, dim=1, keepdim=True, unbiased=False) + self.eps)
+        last_diff = torch.abs(x[:, -1:, :] - x[:, -2:-1, :])
+        denom_feat = instance_std + self.eps
+        features = torch.cat(
+            [
+                (torch.abs(last - instance_mean) / denom_feat).squeeze(1),
+                (torch.abs(tail_median - instance_mean) / denom_feat).squeeze(1),
+                (torch.abs(trend_anchor - boundary_anchor) / denom_feat).squeeze(1),
+                (robust_scale / denom_feat).squeeze(1),
+                (diff_std / denom_feat).squeeze(1),
+                (last_diff / denom_feat).squeeze(1),
+            ],
+            dim=-1,
+        ).detach()
+        weights = torch.softmax(self.selector(features), dim=-1).view(x.shape[0], 3, 1, 1)
+        shift = (weights * candidates).sum(dim=1)
+        gate = self.max_shift * torch.sigmoid(self.shift_gate(features)).view(-1, 1, 1)
+        center = parent_center + gate * shift
+        gamma = torch.sigmoid(self.gamma_logit)
+        scale = gamma * robust_scale + (1.0 - gamma) * instance_std
+        return self.base((x - center) / scale) * scale + center
+
+
 class FutureCenterStaticMix(nn.Module):
     """Global trainable anchor mixture without feature conditioning."""
 
@@ -155,6 +227,10 @@ def build_variant_model(variant: str, backbone: str, seq_len: int, pred_len: int
         return FutureCenterSelector(lrbn.exporter.build_model(backbone, seq_len, pred_len), tail_len, eps=eps)
     if variant == "future_center_selector_drift":
         return FutureCenterSelector(lrbn.exporter.build_model(backbone, seq_len, pred_len), tail_len, drift=True, eps=eps)
+    if variant == "future_center_residual_shift":
+        return FutureCenterResidualShift(lrbn.exporter.build_model(backbone, seq_len, pred_len), tail_len, eps=eps)
+    if variant == "future_center_residual_shift_cap015":
+        return FutureCenterResidualShift(lrbn.exporter.build_model(backbone, seq_len, pred_len), tail_len, max_shift=0.15, eps=eps)
     return ORIGINAL_BUILD_VARIANT_MODEL(variant, backbone, seq_len, pred_len, tail_len, eps)
 
 
@@ -167,6 +243,8 @@ def main() -> None:
                 "future_center_static_drift",
                 "future_center_selector",
                 "future_center_selector_drift",
+                "future_center_residual_shift",
+                "future_center_residual_shift_cap015",
             )
         )
     )

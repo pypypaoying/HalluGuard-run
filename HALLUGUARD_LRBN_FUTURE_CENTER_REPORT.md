@@ -16,6 +16,9 @@ that signal more cleanly than a generic NST branch.
 - `future_center_static_drift`: static mixture plus a small horizon drift.
 - `future_center_selector`: feature-conditioned softmax over the same anchors.
 - `future_center_selector_drift`: selector plus learned horizon drift.
+- `future_center_residual_shift`: parent LRBN center plus a bounded learned
+  shift toward boundary/tail/trend anchors.
+- `future_center_residual_shift_cap015`: lower-shift-cap safety ablation.
 
 ## Initial Results
 
