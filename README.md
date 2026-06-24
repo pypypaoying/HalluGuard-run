@@ -70,6 +70,18 @@ This exports `HalluGuard-RDN` predictions under
 `experiments/halluguard/results/halluguard_rdn/`. See
 `HALLUGUARD_RDN.md` for the method contract and smoke/full commands.
 
+To run the learnable follow-up ablations around robust anchors, residual gates,
+horizon gates, and a unified RevIN-RDN hybrid:
+
+```bash
+bash scripts/run_halluguard_lrbn_table.sh
+```
+
+This exports `HalluGuard-LRBN` predictions under
+`baseline_predictions/halluguard_lrbn/` and writes metrics to
+`experiments/halluguard/results/halluguard_lrbn/`. See
+`HALLUGUARD_LRBN.md`.
+
 ## Frozen HalluGuard Lines
 
 - Main method: `HalluGuard-SP frozen`

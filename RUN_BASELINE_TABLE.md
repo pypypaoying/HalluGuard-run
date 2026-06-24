@@ -299,3 +299,63 @@ For each dataset/backbone/horizon/method row, keep:
 
 Do not tune thresholds, routers, action choices, or baseline hyperparameters on
 test targets.
+
+## 11. Learnable Reversible Boundary Normalization Ablations
+
+After `HalluGuard-RDN-level_only`, use this runner to test the four learnable
+follow-up directions:
+
+- robust anchor learning
+- residual gate between raw and boundary-anchored forecasts
+- horizon-wise learnable gate
+- unified RevIN-RDN hybrid normalization
+
+One-command run:
+
+```bash
+bash scripts/run_halluguard_lrbn_table.sh
+```
+
+Fast smoke:
+
+```bash
+DATASET_SET=ETTm1 MODELS=DLinear HORIZONS=96 \
+LRBN_VARIANTS=fixed_level_only,learnable_robust_anchor \
+EPOCHS=1 MAX_TRAIN_WINDOWS=128 MAX_EVAL_WINDOWS=16 \
+  bash scripts/run_halluguard_lrbn_table.sh
+```
+
+Full server run:
+
+```bash
+DEVICE=cuda EPOCHS=10 MAX_TRAIN_WINDOWS=8192 MAX_EVAL_WINDOWS=1024 \
+  bash scripts/run_halluguard_lrbn_table.sh
+```
+
+Suggested first focused run:
+
+```bash
+LRBN_VARIANTS=fixed_level_only,learnable_horizon_gate,unified_revin_rdn_hybrid \
+DEVICE=cuda EPOCHS=10 MAX_TRAIN_WINDOWS=8192 MAX_EVAL_WINDOWS=1024 \
+  bash scripts/run_halluguard_lrbn_table.sh
+```
+
+The default variant list is:
+
+```text
+fixed_level_only
+learnable_robust_anchor
+learnable_residual_gate
+learnable_horizon_gate
+unified_revin_rdn_hybrid
+```
+
+Outputs:
+
+```text
+baseline_predictions/halluguard_lrbn/*.jsonl
+baseline_predictions/halluguard_lrbn_raw/*.jsonl
+experiments/halluguard/results/halluguard_lrbn/lrbn_metrics.csv
+experiments/halluguard/results/halluguard_lrbn/lrbn_summary.csv
+experiments/halluguard/results/halluguard_lrbn/summary.md
+```
