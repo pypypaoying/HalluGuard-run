@@ -27,7 +27,7 @@ method:
   router_variants:
     - smoothing_cap_selective_router
     - stable_smoothing_cap_router
-    - stage13_rule_router
+    - rule_router
     - oracle_val_policy
   baselines:
     - no_correction
@@ -39,6 +39,7 @@ method:
     - matched_smoothing_control
     - random_action_router
     - validation_best_single_action
+    - rule_router
     - stage9_incumbent
 
 policy:

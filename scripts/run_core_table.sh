@@ -9,6 +9,7 @@ MAX_EVAL_WINDOWS="${MAX_EVAL_WINDOWS:-512}"
 BASELINE_PREDICTION_DIR="${BASELINE_PREDICTION_DIR:-baseline_predictions/core_table}"
 
 echo "== Core table setup =="
+python scripts/validate_core_configs.py
 python scripts/fetch_core_datasets.py --datasets "${DATASET_SET}"
 bash scripts/fetch_plugin_repos.sh
 

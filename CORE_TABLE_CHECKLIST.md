@@ -10,4 +10,5 @@
 - [x] Run syntax/shell checks.
 - [x] Verify official repo checkout script on pinned commits.
 - [x] Verify dataset download script on Weather.
+- [x] Add frozen config validation before core-table runs.
 - [x] Commit and push to `pypypaoying/HalluGuard-run`.
