@@ -59,6 +59,17 @@ bash scripts/run_core12_table.sh
 The final table is written to
 `experiments/halluguard/results/core_table/core12_combined/`.
 
+To run the reversible input-layer HalluGuard idea inspired by RevIN:
+
+```bash
+bash scripts/run_halluguard_rdn_table.sh
+```
+
+This exports `HalluGuard-RDN` predictions under
+`baseline_predictions/halluguard_rdn/` and writes metrics to
+`experiments/halluguard/results/halluguard_rdn/`. See
+`HALLUGUARD_RDN.md` for the method contract and smoke/full commands.
+
 ## Frozen HalluGuard Lines
 
 - Main method: `HalluGuard-SP frozen`

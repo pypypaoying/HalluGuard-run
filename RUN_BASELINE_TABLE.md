@@ -236,7 +236,50 @@ experiments/halluguard/results/core_table/core12_combined/core12_summary.csv
 experiments/halluguard/results/core_table/core12_combined/summary.md
 ```
 
-## 9. Required Reporting Fields
+## 9. Reversible Input-Layer HalluGuard-RDN
+
+This optional follow-up tests the RevIN-like idea where the input and output
+processing are symmetric, but the reversible transform is a HalluGuard-style
+local dynamics baseline rather than ordinary mean/std normalization.
+
+One-command run:
+
+```bash
+bash scripts/run_halluguard_rdn_table.sh
+```
+
+Fast smoke:
+
+```bash
+DATASET_SET=ETTm1 MODELS=DLinear HORIZONS=96 RDN_VARIANTS=level_slope_scale \
+EPOCHS=1 MAX_TRAIN_WINDOWS=128 MAX_EVAL_WINDOWS=16 \
+  bash scripts/run_halluguard_rdn_table.sh
+```
+
+Fuller ablation:
+
+```bash
+RDN_VARIANTS=level_only,level_scale,level_slope,level_slope_scale \
+DEVICE=cuda EPOCHS=10 MAX_TRAIN_WINDOWS=8192 MAX_EVAL_WINDOWS=1024 \
+  bash scripts/run_halluguard_rdn_table.sh
+```
+
+Outputs:
+
+```text
+baseline_predictions/halluguard_rdn/*.jsonl
+baseline_predictions/halluguard_rdn_raw/*.jsonl
+experiments/halluguard/results/halluguard_rdn/rdn_metrics.csv
+experiments/halluguard/results/halluguard_rdn/rdn_summary.csv
+experiments/halluguard/results/halluguard_rdn/summary.md
+```
+
+The method is comparable to RevIN/NST in placement because it wraps the
+forecaster with reversible input/output processing. It should be reported as
+`adapter_mode=reversible_dynamics_normalization`, not as a post-processing
+smoothing baseline.
+
+## 10. Required Reporting Fields
 
 For each dataset/backbone/horizon/method row, keep:
 
