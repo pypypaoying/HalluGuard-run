@@ -23,6 +23,10 @@ that signal more cleanly than a generic NST branch.
   context features and horizon embedding.
 - `future_center_horizon_conservative`: learnable horizon selector with an
   additional learned parent-blend gate initialized conservatively.
+- `future_center_horizon_residual_gate`: learnable horizon-conditioned residual
+  correction around the LRBN parent center.
+- `future_center_horizon_residual_gate_strong`: same mechanism with a larger
+  initial correction budget.
 
 ## Initial Results
 
