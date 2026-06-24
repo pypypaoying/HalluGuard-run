@@ -97,3 +97,42 @@ Recommended next variant:
   rather than larger unconstrained center shifts. Any harm-aware behavior should
   be learned through train-split differentiable gates/regularization, not a
   hand-coded validation rule.
+
+### Learnable Horizon-Aware Selector L1
+
+Command:
+
+```powershell
+python scripts\run_halluguard_lrbn_future_center.py --datasets ETTm1,ETTh1 --models DLinear,PatchTST --horizons 96,192,336,720 --variants unified_revin_rdn_hybrid,future_center_selector,future_center_horizon_selector,future_center_horizon_conservative --data-root external\ETDataset --prediction-dir baseline_predictions\halluguard_lrbn_future_center_horizon_l1 --raw-prediction-dir baseline_predictions\halluguard_lrbn_future_center_horizon_l1_raw --output-dir experiments\halluguard\results\halluguard_lrbn_future_center_horizon_l1 --epochs 2 --max-train-windows 1024 --max-eval-windows 128 --device cpu --continue-on-error
+```
+
+Important design note: this selector is fully learnable. It uses context
+features plus a horizon embedding, and the network learns anchor weights by
+backpropagation on the training split. The conservative variant uses a learned
+parent-blend gate; no validation/test rule is used to choose anchors.
+
+Summary versus `unified_revin_rdn_hybrid`:
+
+| variant | wins | mean MSE delta vs parent | mean MAE delta vs parent | max MSE harm |
+| --- | ---: | ---: | ---: | ---: |
+| `future_center_selector` | 8/16 | -0.215354% | -0.157812% | 1.329137% |
+| `future_center_horizon_selector` | 9/16 | -0.181016% | -0.150137% | 0.672366% |
+| `future_center_horizon_conservative` | 6/16 | +0.148383% | +0.122615% | 1.040169% |
+
+Backbone split for `future_center_horizon_selector`:
+
+- DLinear: mean MSE delta `-0.388041%`, wins `5/8`, max harm `0.094585%`.
+- PatchTST: mean MSE delta `+0.026008%`, wins `4/8`, max harm `0.672366%`.
+
+Interpretation:
+
+- Learnable horizon conditioning does reduce harm: max harm drops from
+  `1.329137%` to `0.672366%`.
+- It is slightly weaker on mean MSE than the non-horizon selector.
+- The conservative learned parent gate is too conservative/underfit and should
+  not be promoted.
+
+Updated recommendation: keep `future_center_horizon_selector` as the safer
+learnable center selector, and keep `future_center_selector` as the more
+aggressive center-only candidate. The next improvement should make the
+horizon-aware selector regain PatchTST benefit without losing its lower harm.
