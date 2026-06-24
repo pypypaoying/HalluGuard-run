@@ -14,6 +14,18 @@ The exploratory NST/future-center lines are not part of the main claim table.
 bash scripts/run_clean_claim_bigtable.sh
 ```
 
+First run on a fresh server should fetch data explicitly:
+
+```bash
+FETCH_DATA=1 bash scripts/run_clean_claim_bigtable.sh
+```
+
+Later reruns should normally skip re-downloading data:
+
+```bash
+EXTRA_FLAGS="--skip-existing" bash scripts/run_clean_claim_bigtable.sh
+```
+
 Outputs:
 
 ```text
@@ -65,6 +77,7 @@ DEVICE=cuda \
 EPOCHS=10 \
 MAX_TRAIN_WINDOWS=8192 \
 MAX_EVAL_WINDOWS=1024 \
+FETCH_DATA=1 \
 OUTPUT_DIR=experiments/halluguard/results/lrbn_clean_claim_bigtable_v1 \
   bash scripts/run_clean_claim_bigtable.sh
 ```
@@ -75,7 +88,25 @@ To restrict the run:
 DATASETS=ETTm1,ETTh1 \
 BACKBONES=DLinear,PatchTST \
 SEEDS=2026,2027,2028 \
+FETCH_DATA=1 \
   bash scripts/run_clean_claim_bigtable.sh
+```
+
+## Monitoring
+
+The top-level runner prints one progress line per dataset/model/horizon/seed
+config. Child process stdout/stderr is written to:
+
+```text
+<OUTPUT_DIR>/logs/
+```
+
+Useful server checks:
+
+```bash
+tail -f experiments/halluguard/results/lrbn_clean_claim_bigtable_v1/logs/fetch_data.log
+tail -f experiments/halluguard/results/lrbn_clean_claim_bigtable_v1/logs/ETTm1_DLinear_96_seed2026_lrbn.log
+tail -f experiments/halluguard/results/lrbn_clean_claim_bigtable_v1/logs/ETTm1_DLinear_96_seed2026_adaptation.log
 ```
 
 ## Fairness Contract

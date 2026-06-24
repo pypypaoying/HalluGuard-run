@@ -79,6 +79,7 @@ def main() -> None:
     parser.add_argument("--max-eval-windows", type=int, default=1024)
     parser.add_argument("--device", default="auto", choices=["auto", "cpu", "cuda"])
     parser.add_argument("--fetch-data", action="store_true")
+    parser.add_argument("--fetch-datasets", default="", help="Dataset list for fetch_core_datasets.py; defaults to requested datasets.")
     parser.add_argument("--continue-on-error", action="store_true", default=True)
     parser.add_argument("--skip-existing", action="store_true")
     parser.add_argument("--smoke", action="store_true", help="Run a tiny smoke subset while preserving output schema.")
@@ -106,15 +107,20 @@ def main() -> None:
     (args.output_dir / "logs").mkdir(parents=True, exist_ok=True)
 
     if args.fetch_data:
-        run_command([sys.executable, str(FETCH_DATA_SCRIPT), "--datasets", "core"], args.output_dir / "logs" / "fetch_data.log")
+        fetch_datasets = args.fetch_datasets.strip() or ",".join(datasets)
+        print_progress(f"fetch-data datasets={fetch_datasets} log={args.output_dir / 'logs' / 'fetch_data.log'}")
+        run_command([sys.executable, str(FETCH_DATA_SCRIPT), "--datasets", fetch_datasets], args.output_dir / "logs" / "fetch_data.log")
 
     configs = [Config(d, b, h, s) for d in datasets for b in backbones for h in horizons for s in seeds]
     rows: List[Dict[str, object]] = []
-    for cfg in configs:
+    for idx, cfg in enumerate(configs, start=1):
+        print_progress(f"config {idx}/{len(configs)} {cfg.tag}")
         if cfg.dataset not in SUPPORTED_DATASETS:
+            print_progress(f"blocked {cfg.tag}: unsupported dataset")
             rows.extend(blocked_config_rows(cfg, methods, "dataset not supported by current lightweight in-repo exporter; provide official prediction adapter or extend data loader"))
             continue
         if cfg.backbone not in SUPPORTED_BACKBONES:
+            print_progress(f"blocked {cfg.tag}: unsupported backbone")
             rows.extend(blocked_config_rows(cfg, methods, "backbone not supported by current lightweight in-repo exporter; integrate official TSLib/adapter for this backbone"))
             continue
         try:
@@ -140,6 +146,7 @@ def run_supported_config(cfg: Config, methods: Sequence[str], args: argparse.Nam
         raw_dir = args.output_dir / "predictions" / "raw" / cfg.tag
         out_dir = args.output_dir / "runs" / "halluguard_lrbn" / cfg.tag
         if not (args.skip_existing and (out_dir / "lrbn_metrics.csv").exists()):
+            print_progress(f"run LRBN/raw {cfg.tag} log={args.output_dir / 'logs' / f'{cfg.tag}_lrbn.log'}")
             cmd = [
                 sys.executable,
                 str(LRBN_SCRIPT),
@@ -180,11 +187,14 @@ def run_supported_config(cfg: Config, methods: Sequence[str], args: argparse.Nam
                 "--continue-on-error",
             ]
             run_command(cmd, args.output_dir / "logs" / f"{cfg.tag}_lrbn.log")
+        else:
+            print_progress(f"skip existing LRBN/raw {cfg.tag}")
         rows.extend(lrbn_rows_from_metrics(cfg, out_dir, methods))
 
     if adapter_methods:
         adapter_dir = args.output_dir / "predictions" / "adaptation_baselines" / cfg.tag
         if not (args.skip_existing and (adapter_dir / "manifest.csv").exists()):
+            print_progress(f"run adapters {cfg.tag} methods={','.join(adapter_methods)} log={args.output_dir / 'logs' / f'{cfg.tag}_adaptation.log'}")
             cmd = [
                 sys.executable,
                 str(CORE12_SCRIPT),
@@ -219,6 +229,8 @@ def run_supported_config(cfg: Config, methods: Sequence[str], args: argparse.Nam
                 "--continue-on-error",
             ]
             run_command(cmd, args.output_dir / "logs" / f"{cfg.tag}_adaptation.log")
+        else:
+            print_progress(f"skip existing adapters {cfg.tag}")
         rows.extend(adapter_rows_from_predictions(cfg, adapter_dir, adapter_methods))
 
     if smoothing_methods:
@@ -229,6 +241,7 @@ def run_supported_config(cfg: Config, methods: Sequence[str], args: argparse.Nam
             try:
                 out_path = smoothing_dir / f"{cfg.dataset}_{cfg.backbone}_{cfg.horizon}_{method}.jsonl"
                 if not (args.skip_existing and out_path.exists()):
+                    print_progress(f"write smoothing {cfg.tag} method={method}")
                     write_smoothing_predictions(raw_path, out_path, method)
                 mse, mae = prediction_metrics(out_path)
                 rows.append(metric_row(cfg, method, mse, mae, "", "", str(out_path), str(smoothing_dir), "completed", ""))
@@ -503,6 +516,10 @@ def run_command(cmd: Sequence[str], log_path: Path) -> None:
         log.write(f"\nexit_code={proc.returncode} elapsed_sec={time.time() - start:.2f}\n")
     if proc.returncode != 0:
         raise RuntimeError(f"command failed with code {proc.returncode}; see {log_path}")
+
+
+def print_progress(message: str) -> None:
+    print(f"[halluguard-bigtable] {time.strftime('%Y-%m-%d %H:%M:%S')} {message}", flush=True)
 
 
 def parse_list(raw: str) -> List[str]:

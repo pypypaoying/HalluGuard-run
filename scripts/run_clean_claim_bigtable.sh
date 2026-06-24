@@ -22,7 +22,14 @@ EPOCHS="${EPOCHS:-10}"
 MAX_TRAIN_WINDOWS="${MAX_TRAIN_WINDOWS:-8192}"
 MAX_EVAL_WINDOWS="${MAX_EVAL_WINDOWS:-1024}"
 OUTPUT_DIR="${OUTPUT_DIR:-experiments/halluguard/results/lrbn_clean_claim_bigtable_v1}"
+FETCH_DATA="${FETCH_DATA:-0}"
+FETCH_DATASETS="${FETCH_DATASETS:-${DATASETS}}"
 EXTRA_FLAGS="${EXTRA_FLAGS:-}"
+
+FETCH_FLAGS=()
+if [[ "${FETCH_DATA}" == "1" || "${FETCH_DATA}" == "true" || "${FETCH_DATA}" == "TRUE" ]]; then
+  FETCH_FLAGS=(--fetch-data --fetch-datasets "${FETCH_DATASETS}")
+fi
 
 python scripts/run_lrbn_clean_claim_bigtable.py \
   --datasets "${DATASETS}" \
@@ -36,7 +43,7 @@ python scripts/run_lrbn_clean_claim_bigtable.py \
   --max-train-windows "${MAX_TRAIN_WINDOWS}" \
   --max-eval-windows "${MAX_EVAL_WINDOWS}" \
   --device "${DEVICE}" \
-  --fetch-data \
+  "${FETCH_FLAGS[@]}" \
   ${EXTRA_FLAGS}
 
 echo "== BigTable outputs =="
