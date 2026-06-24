@@ -82,6 +82,13 @@ This exports `HalluGuard-LRBN` predictions under
 `experiments/halluguard/results/halluguard_lrbn/`. See
 `HALLUGUARD_LRBN.md`.
 
+For the focused combination ablation of `fixed_level_only`,
+`learnable_robust_anchor`, and `unified_revin_rdn_hybrid`:
+
+```bash
+bash scripts/run_halluguard_lrbn_combo_table.sh
+```
+
 ## Frozen HalluGuard Lines
 
 - Main method: `HalluGuard-SP frozen`

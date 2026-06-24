@@ -359,3 +359,27 @@ experiments/halluguard/results/halluguard_lrbn/lrbn_metrics.csv
 experiments/halluguard/results/halluguard_lrbn/lrbn_summary.csv
 experiments/halluguard/results/halluguard_lrbn/summary.md
 ```
+
+Combination ablation for the three strongest boundary-normalization components:
+
+```bash
+bash scripts/run_halluguard_lrbn_combo_table.sh
+```
+
+Focused combination run:
+
+```bash
+LRBN_VARIANTS=unified_revin_rdn_hybrid,robust_unified_hybrid,robust_unified_no_scale,fixed_anchor_unified_scale \
+DEVICE=cuda EPOCHS=10 MAX_TRAIN_WINDOWS=8192 MAX_EVAL_WINDOWS=1024 \
+  bash scripts/run_halluguard_lrbn_combo_table.sh
+```
+
+Combination outputs:
+
+```text
+baseline_predictions/halluguard_lrbn_combo/*.jsonl
+baseline_predictions/halluguard_lrbn_combo_raw/*.jsonl
+experiments/halluguard/results/halluguard_lrbn_combo/lrbn_metrics.csv
+experiments/halluguard/results/halluguard_lrbn_combo/lrbn_summary.csv
+experiments/halluguard/results/halluguard_lrbn_combo/summary.md
+```

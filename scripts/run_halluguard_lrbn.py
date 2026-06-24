@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Run learnable HalluGuard boundary-normalization ablations.
 
-This script turns the RDN-level-only observation into four testable, trainable
+This script turns the RDN-level-only observation into testable, trainable
 variants:
 
 1. learnable_robust_anchor
@@ -16,6 +16,11 @@ variants:
 4. unified_revin_rdn_hybrid
    center = beta * boundary_anchor + (1-beta) * instance_mean
    scale  = gamma * robust_tail_scale + (1-gamma) * instance_std
+
+5. combination variants
+   robust anchor, fixed level anchor, unified hybrid scale, and output blend
+   ablations that test whether the three strongest LRBN components are
+   complementary.
 
 All parameters are learned only through the training split. Validation/test
 targets are used only for reporting metrics. The exported JSONL schema matches
@@ -52,6 +57,10 @@ VARIANTS = (
     "learnable_residual_gate",
     "learnable_horizon_gate",
     "unified_revin_rdn_hybrid",
+    "robust_unified_hybrid",
+    "robust_unified_no_scale",
+    "fixed_anchor_unified_scale",
+    "fixed_hybrid_output_blend",
 )
 
 
@@ -144,6 +153,68 @@ class UnifiedRevINRDNHybrid(nn.Module):
         scale = gamma * robust_scale + (1.0 - gamma) * instance_std
         z = (x - center) / scale
         return self.base(z) * scale + center
+
+
+class RobustUnifiedHybrid(nn.Module):
+    """Unified RevIN-RDN hybrid with a learnable robust boundary anchor."""
+
+    def __init__(
+        self,
+        base: nn.Module,
+        tail_len: int,
+        init_alpha: float = 0.85,
+        init_beta: float = 0.7,
+        init_gamma: float = 0.35,
+        use_scale: bool = True,
+        fixed_last_anchor: bool = False,
+        eps: float = 1e-5,
+    ):
+        super().__init__()
+        self.base = base
+        self.tail_len = int(tail_len)
+        self.use_scale = bool(use_scale)
+        self.fixed_last_anchor = bool(fixed_last_anchor)
+        if self.fixed_last_anchor:
+            self.register_buffer("alpha_logit", logit_tensor(1.0))
+        else:
+            self.alpha_logit = nn.Parameter(logit_tensor(init_alpha))
+        self.beta_logit = nn.Parameter(logit_tensor(init_beta))
+        self.gamma_logit = nn.Parameter(logit_tensor(init_gamma))
+        self.eps = float(eps)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        last, tail_median, robust_scale, instance = context_stats(x, self.tail_len, self.eps)
+        instance_mean, instance_std = instance
+        if self.fixed_last_anchor:
+            boundary_anchor = last
+        else:
+            alpha = torch.sigmoid(self.alpha_logit)
+            boundary_anchor = alpha * last + (1.0 - alpha) * tail_median
+        beta = torch.sigmoid(self.beta_logit)
+        center = beta * boundary_anchor + (1.0 - beta) * instance_mean
+        if self.use_scale:
+            gamma = torch.sigmoid(self.gamma_logit)
+            scale = gamma * robust_scale + (1.0 - gamma) * instance_std
+        else:
+            scale = torch.ones_like(center)
+        z = (x - center) / scale
+        return self.base(z) * scale + center
+
+
+class FixedHybridOutputBlend(nn.Module):
+    """Diagnostic only: learn whether hard level anchor complements hybrid output."""
+
+    def __init__(self, fixed_base: nn.Module, hybrid_base: nn.Module, tail_len: int, init_blend: float = 0.35, eps: float = 1e-5):
+        super().__init__()
+        self.fixed = FixedLevelOnly(fixed_base)
+        self.hybrid = RobustUnifiedHybrid(hybrid_base, tail_len, eps=eps)
+        self.blend_logit = nn.Parameter(logit_tensor(init_blend))
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        fixed = self.fixed(x)
+        hybrid = self.hybrid(x)
+        blend = torch.sigmoid(self.blend_logit)
+        return blend * fixed + (1.0 - blend) * hybrid
 
 
 class LearnableHorizonGate(nn.Module):
@@ -304,6 +375,7 @@ def run_job(job: Job, out_path: Path, args: argparse.Namespace) -> dict:
         "n_test": len(test_starts),
         "prediction_path": str(out_path),
         "adapter_mode": "learnable_reversible_boundary_normalization",
+        "learned_params": learned_params(model),
         "test_threshold_leakage": False,
     }
     out_path.with_suffix(".manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
@@ -351,6 +423,14 @@ def build_variant_model(variant: str, backbone: str, seq_len: int, pred_len: int
         return LearnableHorizonGate(exporter.build_model(backbone, seq_len, pred_len), exporter.build_model(backbone, seq_len, pred_len), pred_len)
     if variant == "unified_revin_rdn_hybrid":
         return UnifiedRevINRDNHybrid(exporter.build_model(backbone, seq_len, pred_len), tail_len, eps=eps)
+    if variant == "robust_unified_hybrid":
+        return RobustUnifiedHybrid(exporter.build_model(backbone, seq_len, pred_len), tail_len, eps=eps)
+    if variant == "robust_unified_no_scale":
+        return RobustUnifiedHybrid(exporter.build_model(backbone, seq_len, pred_len), tail_len, use_scale=False, eps=eps)
+    if variant == "fixed_anchor_unified_scale":
+        return RobustUnifiedHybrid(exporter.build_model(backbone, seq_len, pred_len), tail_len, fixed_last_anchor=True, eps=eps)
+    if variant == "fixed_hybrid_output_blend":
+        return FixedHybridOutputBlend(exporter.build_model(backbone, seq_len, pred_len), exporter.build_model(backbone, seq_len, pred_len), tail_len, eps=eps)
     raise ValueError(f"Unknown variant: {variant}")
 
 
@@ -496,6 +576,27 @@ def summary_md(rows: List[dict], summary: List[dict], args: argparse.Namespace) 
 
 def blocked_record(dataset: str, backbone: str, horizon: int, variant: str, path: Path, method: str, exc: Exception) -> dict:
     return {"dataset": dataset, "backbone": backbone, "horizon": horizon, "variant": variant, "method": method, "model_label": f"{backbone}+{method}-{variant}", "status": "blocked", "mse": "", "mae": "", "mse_delta_pct_vs_raw": "", "mae_delta_pct_vs_raw": "", "prediction_path": str(path), "blocker_reason": f"{type(exc).__name__}: {exc}", "adapter_mode": "learnable_reversible_boundary_normalization", "test_threshold_leakage": False}
+
+
+def learned_params(model: nn.Module) -> str:
+    values = {}
+    for name, param in model.named_parameters():
+        if name.endswith("alpha_logit"):
+            values[name.replace("_logit", "")] = float(torch.sigmoid(param.detach()).mean().cpu())
+        elif name.endswith("beta_logit"):
+            values[name.replace("_logit", "")] = float(torch.sigmoid(param.detach()).mean().cpu())
+        elif name.endswith("gamma_logit"):
+            values[name.replace("_logit", "")] = float(torch.sigmoid(param.detach()).mean().cpu())
+        elif name.endswith("blend_logit"):
+            values[name.replace("_logit", "")] = float(torch.sigmoid(param.detach()).mean().cpu())
+        elif name.endswith("horizon_logits"):
+            gate = torch.sigmoid(param.detach()).cpu()
+            values[name] = {
+                "mean": float(gate.mean()),
+                "first": float(gate[:, 0, :].mean()),
+                "last": float(gate[:, -1, :].mean()),
+            }
+    return json.dumps(values, sort_keys=True)
 
 
 def parse_list(raw: str, allowed: Sequence[str], name: str) -> List[str]:
