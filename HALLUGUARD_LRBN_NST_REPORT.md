@@ -16,6 +16,8 @@ Main claim-clean parent: `unified_revin_rdn_hybrid`.
   branches.
 - `lrbn_nst_feature_gate`: train-split context-feature gate between LRBN and NST
   branches.
+- `lrbn_nst_conservative_gate`: feature gate initialized near the LRBN parent
+  (`0.95` LRBN weight) to test whether NST can be a safe complement.
 
 ## Results
 
@@ -38,6 +40,26 @@ Interpretation: residual stationarization does not improve the LRBN parent in
 this first smoke, suggesting redundancy between NST-style stationarization and
 LRBN center/scale. The diagnostic output blend improves PatchTST, so there may
 be branch complementarity worth testing with a deployable context gate.
+
+### Low-Budget L1: Feature Gate
+
+Command:
+
+```powershell
+python scripts\run_halluguard_lrbn_nst.py --datasets ETTm1,ETTh1 --models DLinear,PatchTST --horizons 96,192,336,720 --variants unified_revin_rdn_hybrid,nst_lightweight,lrbn_nst_feature_gate,lrbn_nst_output_blend --data-root external\ETDataset --prediction-dir baseline_predictions\halluguard_lrbn_nst_l1 --raw-prediction-dir baseline_predictions\halluguard_lrbn_nst_l1_raw --output-dir experiments\halluguard\results\halluguard_lrbn_nst_l1 --epochs 2 --max-train-windows 1024 --max-eval-windows 128 --device cpu --continue-on-error
+```
+
+Summary versus `unified_revin_rdn_hybrid` parent:
+
+- `nst_lightweight`: wins `2/16`, mean MSE delta vs parent `+2.4951%`.
+- `lrbn_nst_feature_gate`: wins `7/16`, mean MSE delta vs parent `-0.2047%`;
+  DLinear `+0.5178%`, PatchTST `-0.9272%`.
+- `lrbn_nst_output_blend`: wins `9/16`, mean MSE delta vs parent `+0.0429%`;
+  DLinear `+1.3208%`, PatchTST `-1.2349%`.
+
+Interpretation: NST is not a standalone improvement here, but it is useful on
+PatchTST when blended with LRBN. The next candidate is a conservative gate that
+starts near the LRBN parent and only borrows NST when training supports it.
 
 ## Claim Boundary
 

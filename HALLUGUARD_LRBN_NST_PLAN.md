@@ -47,10 +47,15 @@ duplicating RevIN/LRBN center-scale normalization?
    - This is a deployable candidate if it improves over the parent without
      becoming just a fixed output blend.
 
+4. `lrbn_nst_conservative_gate`
+   - Same feature gate, but initialized to `0.95` LRBN weight.
+   - Tests whether NST can be used as a conservative PatchTST-oriented
+     complement without damaging the DLinear part of the parent line.
+
 ## Smoke
 
 ```bash
-LRBN_NST_VARIANTS=unified_revin_rdn_hybrid,nst_lightweight,lrbn_unified_nst_residual,lrbn_nst_output_blend,lrbn_nst_feature_gate \
+LRBN_NST_VARIANTS=unified_revin_rdn_hybrid,nst_lightweight,lrbn_unified_nst_residual,lrbn_nst_output_blend,lrbn_nst_feature_gate,lrbn_nst_conservative_gate \
 DATASET_SET=ETTm1 MODELS=DLinear,PatchTST HORIZONS=96 \
 EPOCHS=1 MAX_TRAIN_WINDOWS=128 MAX_EVAL_WINDOWS=32 \
   bash scripts/run_halluguard_lrbn_nst_table.sh
@@ -63,7 +68,7 @@ margin.
 ## Full Run
 
 ```bash
-LRBN_NST_VARIANTS=unified_revin_rdn_hybrid,nst_lightweight,lrbn_unified_nst_residual,lrbn_nst_output_blend,lrbn_nst_feature_gate \
+LRBN_NST_VARIANTS=unified_revin_rdn_hybrid,nst_lightweight,lrbn_unified_nst_residual,lrbn_nst_output_blend,lrbn_nst_feature_gate,lrbn_nst_conservative_gate \
 DEVICE=cuda EPOCHS=10 MAX_TRAIN_WINDOWS=8192 MAX_EVAL_WINDOWS=1024 \
   bash scripts/run_halluguard_lrbn_nst_table.sh
 ```

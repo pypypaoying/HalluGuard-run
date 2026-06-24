@@ -102,7 +102,15 @@ class LRBNNSTOutputBlend(nn.Module):
 class LRBNNSTFeatureGate(nn.Module):
     """Train-split context gate that chooses between LRBN and NST branches."""
 
-    def __init__(self, lrbn_base: nn.Module, nst_base: nn.Module, tail_len: int, hidden: int = 8, eps: float = 1e-5):
+    def __init__(
+        self,
+        lrbn_base: nn.Module,
+        nst_base: nn.Module,
+        tail_len: int,
+        hidden: int = 8,
+        init_lrbn_weight: float = 0.75,
+        eps: float = 1e-5,
+    ):
         super().__init__()
         self.lrbn_branch = lrbn.UnifiedRevINRDNHybrid(lrbn_base, tail_len, eps=eps)
         self.nst_branch = NSTLightweight(nst_base, eps=eps)
@@ -111,7 +119,7 @@ class LRBNNSTFeatureGate(nn.Module):
         self.gate = nn.Sequential(nn.Linear(5, hidden), nn.GELU(), nn.Linear(hidden, 1))
         with torch.no_grad():
             self.gate[-1].weight.zero_()
-            self.gate[-1].bias.fill_(lrbn.logit(0.75))
+            self.gate[-1].bias.fill_(lrbn.logit(init_lrbn_weight))
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         lrbn_pred = self.lrbn_branch(x)
@@ -161,11 +169,19 @@ def build_variant_model(variant: str, backbone: str, seq_len: int, pred_len: int
             tail_len,
             eps=eps,
         )
+    if variant == "lrbn_nst_conservative_gate":
+        return LRBNNSTFeatureGate(
+            lrbn.exporter.build_model(backbone, seq_len, pred_len),
+            lrbn.exporter.build_model(backbone, seq_len, pred_len),
+            tail_len,
+            init_lrbn_weight=0.95,
+            eps=eps,
+        )
     return ORIGINAL_BUILD_VARIANT_MODEL(variant, backbone, seq_len, pred_len, tail_len, eps)
 
 
 def main() -> None:
-    lrbn.VARIANTS = tuple(dict.fromkeys((*lrbn.VARIANTS, "nst_lightweight", "lrbn_unified_nst_residual", "lrbn_nst_output_blend", "lrbn_nst_feature_gate")))
+    lrbn.VARIANTS = tuple(dict.fromkeys((*lrbn.VARIANTS, "nst_lightweight", "lrbn_unified_nst_residual", "lrbn_nst_output_blend", "lrbn_nst_feature_gate", "lrbn_nst_conservative_gate")))
     lrbn.build_variant_model = build_variant_model
     lrbn.main()
 
