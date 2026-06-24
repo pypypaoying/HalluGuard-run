@@ -1,0 +1,26 @@
+[
+  {
+    "variant": "future_center_residual_shift",
+    "wins": 9,
+    "mean_mse_delta_pct_vs_parent": -0.045514982220202296,
+    "mean_mae_delta_pct_vs_parent": -0.04122308403029377,
+    "max_harm": 1.1911680671511709,
+    "max_gain": -1.9481398400719803
+  },
+  {
+    "variant": "future_center_residual_shift_cap015",
+    "wins": 7,
+    "mean_mse_delta_pct_vs_parent": 0.12231494600790178,
+    "mean_mae_delta_pct_vs_parent": 0.024870774398901757,
+    "max_harm": 3.509343045774723,
+    "max_gain": -0.9936145866052108
+  },
+  {
+    "variant": "future_center_selector",
+    "wins": 8,
+    "mean_mse_delta_pct_vs_parent": -0.21535388332381264,
+    "mean_mae_delta_pct_vs_parent": -0.15781223466486935,
+    "max_harm": 1.3291370134945213,
+    "max_gain": -1.841248251521345
+  }
+]
