@@ -140,3 +140,42 @@ Updated recommendation: keep `future_center_horizon_selector` as the safer
 learnable center selector, and keep `future_center_selector` as the more
 aggressive center-only candidate. The next improvement should make the
 horizon-aware selector regain PatchTST benefit without losing its lower harm.
+
+### Horizon Residual Gate L1
+
+Command:
+
+```powershell
+python scripts\run_halluguard_lrbn_future_center.py --datasets ETTm1,ETTh1 --models DLinear,PatchTST --horizons 96,192,336,720 --variants unified_revin_rdn_hybrid,future_center_selector,future_center_horizon_selector,future_center_horizon_residual_gate,future_center_horizon_residual_gate_strong --data-root external\ETDataset --prediction-dir baseline_predictions\halluguard_lrbn_future_center_residual_horizon_l1 --raw-prediction-dir baseline_predictions\halluguard_lrbn_future_center_residual_horizon_l1_raw --output-dir experiments\halluguard\results\halluguard_lrbn_future_center_residual_horizon_l1 --epochs 2 --max-train-windows 1024 --max-eval-windows 128 --device cpu --continue-on-error
+```
+
+This round tested a fully learnable horizon-conditioned residual correction
+around the LRBN parent center. It still learns from the training split only.
+
+Summary versus `unified_revin_rdn_hybrid`:
+
+| variant | wins | mean MSE delta vs parent | mean MAE delta vs parent | max MSE harm |
+| --- | ---: | ---: | ---: | ---: |
+| `future_center_selector` | 8/16 | -0.215354% | -0.157812% | 1.329137% |
+| `future_center_horizon_selector` | 9/16 | -0.181016% | -0.150137% | 0.672366% |
+| `future_center_horizon_residual_gate` | 8/16 | +0.006275% | -0.019297% | 1.180166% |
+| `future_center_horizon_residual_gate_strong` | 10/16 | -0.025322% | -0.072519% | 0.826409% |
+
+Interpretation:
+
+- The residual-gate family did not recover PatchTST gains.
+- The strong version wins more configs but has near-zero mean MSE gain.
+- The safer horizon selector remains the better harm-controlled learnable
+  option.
+
+Updated frontier:
+
+1. `future_center_selector`: best center-only mean gain, but higher harm.
+2. `future_center_horizon_selector`: safer learnable selector, lower mean gain.
+3. `future_center_horizon_residual_gate_strong`: diagnostic only; not enough
+   mean gain to keep optimizing immediately.
+
+Next experiment should not increase shift magnitude. It should improve the
+learned selector's target, e.g. add a train-split regularizer that penalizes
+large center changes when the parent forecast is already locally stable, or add
+backbone-free stability features to the selector input.
