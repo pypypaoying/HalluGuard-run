@@ -1,0 +1,18 @@
+[
+  {
+    "variant": "lrbn_nst_conservative_gate",
+    "wins_vs_parent": 10,
+    "mean_mse_delta_pct_vs_parent": 0.026373128867896375,
+    "mean_mae_delta_pct_vs_parent": 0.02205675191789913,
+    "max_mse_harm_pct": 2.1910274592770373,
+    "max_mse_gain_pct": -0.8333569388196607
+  },
+  {
+    "variant": "lrbn_nst_feature_gate",
+    "wins_vs_parent": 9,
+    "mean_mse_delta_pct_vs_parent": -0.4587198643041009,
+    "mean_mae_delta_pct_vs_parent": -0.20807758494633355,
+    "max_mse_harm_pct": 0.6014725754651954,
+    "max_mse_gain_pct": -4.1629049096182715
+  }
+]
