@@ -19,6 +19,10 @@ that signal more cleanly than a generic NST branch.
 - `future_center_residual_shift`: parent LRBN center plus a bounded learned
   shift toward boundary/tail/trend anchors.
 - `future_center_residual_shift_cap015`: lower-shift-cap safety ablation.
+- `future_center_horizon_selector`: fully learnable selector conditioned on
+  context features and horizon embedding.
+- `future_center_horizon_conservative`: learnable horizon selector with an
+  additional learned parent-blend gate initialized conservatively.
 
 ## Initial Results
 
@@ -89,6 +93,7 @@ Recommended next variant:
 
 - Keep `future_center_selector` as the center-only parent candidate.
 - Do not promote drift or residual-shift cap yet.
-- Next optimization should use validation-only harm-aware selection or a
-  horizon-conditioned center selector, rather than larger unconstrained center
-  shifts.
+- Next optimization should use a learnable horizon-conditioned center selector,
+  rather than larger unconstrained center shifts. Any harm-aware behavior should
+  be learned through train-split differentiable gates/regularization, not a
+  hand-coded validation rule.

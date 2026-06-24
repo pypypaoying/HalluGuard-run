@@ -179,6 +179,89 @@ class FutureCenterResidualShift(nn.Module):
         return self.base((x - center) / scale) * scale + center
 
 
+class FutureCenterHorizonAwareSelector(nn.Module):
+    """Learnable center selector conditioned on context features and horizon."""
+
+    def __init__(
+        self,
+        base: nn.Module,
+        tail_len: int,
+        pred_len: int,
+        init_gamma: float = 0.35,
+        hidden: int = 12,
+        horizon_dim: int = 4,
+        conservative: bool = True,
+        eps: float = 1e-5,
+    ):
+        super().__init__()
+        self.base = base
+        self.tail_len = int(tail_len)
+        self.pred_len = int(pred_len)
+        self.gamma_logit = nn.Parameter(lrbn.logit_tensor(init_gamma))
+        self.conservative = bool(conservative)
+        self.eps = float(eps)
+        self.horizon_embed = nn.Sequential(nn.Linear(2, horizon_dim), nn.Tanh())
+        self.selector = nn.Sequential(nn.Linear(6 + horizon_dim, hidden), nn.GELU(), nn.Linear(hidden, 4))
+        if self.conservative:
+            self.parent_gate = nn.Sequential(nn.Linear(6 + horizon_dim, hidden), nn.GELU(), nn.Linear(hidden, 1))
+        with torch.no_grad():
+            self.selector[-1].weight.zero_()
+            self.selector[-1].bias.copy_(torch.tensor([0.0, 1.3, -2.0, -2.0]))
+            if self.conservative:
+                self.parent_gate[-1].weight.zero_()
+                self.parent_gate[-1].bias.fill_(lrbn.logit(0.85))
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        anchors, parent_center, scale, features = self._anchors_parent_scale_features(x)
+        horizon = torch.tensor(
+            [self.pred_len / 96.0, torch.log1p(torch.tensor(float(self.pred_len), device=x.device, dtype=x.dtype)) / 7.0],
+            device=x.device,
+            dtype=x.dtype,
+        ).view(1, 2).expand(x.shape[0], -1)
+        hfeat = self.horizon_embed(horizon)
+        full_features = torch.cat([features, hfeat], dim=-1)
+        weights = torch.softmax(self.selector(full_features), dim=-1).view(x.shape[0], 4, 1, 1)
+        selected_center = (weights * anchors).sum(dim=1)
+        if self.conservative:
+            parent_weight = torch.sigmoid(self.parent_gate(full_features)).view(-1, 1, 1)
+            center = parent_weight * parent_center + (1.0 - parent_weight) * selected_center
+        else:
+            center = selected_center
+        return self.base((x - center) / scale) * scale + center
+
+    def _anchors_parent_scale_features(self, x: torch.Tensor):
+        last, tail_median, robust_scale, instance = lrbn.context_stats(x, self.tail_len, self.eps)
+        instance_mean, instance_std = instance
+        tail = x[:, -max(4, min(self.tail_len, x.shape[1])) :, :]
+        idx = torch.linspace(-1.0, 0.0, tail.shape[1], device=x.device, dtype=x.dtype).view(1, -1, 1)
+        idx = idx - idx.mean(dim=1, keepdim=True)
+        denom = torch.sum(idx * idx, dim=1, keepdim=True).clamp_min(self.eps)
+        slope = torch.sum((tail - tail.mean(dim=1, keepdim=True)) * idx, dim=1, keepdim=True) / denom
+        trend_anchor = last + slope
+        boundary_anchor = 0.85 * last + 0.15 * tail_median
+        beta = torch.tensor(0.7, device=x.device, dtype=x.dtype).view(1, 1, 1)
+        parent_center = beta * boundary_anchor + (1.0 - beta) * instance_mean
+        anchors = torch.stack([instance_mean, boundary_anchor, tail_median, trend_anchor], dim=1)
+        gamma = torch.sigmoid(self.gamma_logit)
+        scale = gamma * robust_scale + (1.0 - gamma) * instance_std
+        diff = x[:, 1:, :] - x[:, :-1, :]
+        diff_std = torch.sqrt(torch.var(diff, dim=1, keepdim=True, unbiased=False) + self.eps)
+        last_diff = torch.abs(x[:, -1:, :] - x[:, -2:-1, :])
+        denom_feat = instance_std + self.eps
+        features = torch.cat(
+            [
+                (torch.abs(last - instance_mean) / denom_feat).squeeze(1),
+                (torch.abs(tail_median - instance_mean) / denom_feat).squeeze(1),
+                (torch.abs(trend_anchor - boundary_anchor) / denom_feat).squeeze(1),
+                (robust_scale / denom_feat).squeeze(1),
+                (diff_std / denom_feat).squeeze(1),
+                (last_diff / denom_feat).squeeze(1),
+            ],
+            dim=-1,
+        ).detach()
+        return anchors, parent_center, scale, features
+
+
 class FutureCenterStaticMix(nn.Module):
     """Global trainable anchor mixture without feature conditioning."""
 
@@ -231,6 +314,10 @@ def build_variant_model(variant: str, backbone: str, seq_len: int, pred_len: int
         return FutureCenterResidualShift(lrbn.exporter.build_model(backbone, seq_len, pred_len), tail_len, eps=eps)
     if variant == "future_center_residual_shift_cap015":
         return FutureCenterResidualShift(lrbn.exporter.build_model(backbone, seq_len, pred_len), tail_len, max_shift=0.15, eps=eps)
+    if variant == "future_center_horizon_selector":
+        return FutureCenterHorizonAwareSelector(lrbn.exporter.build_model(backbone, seq_len, pred_len), tail_len, pred_len, conservative=False, eps=eps)
+    if variant == "future_center_horizon_conservative":
+        return FutureCenterHorizonAwareSelector(lrbn.exporter.build_model(backbone, seq_len, pred_len), tail_len, pred_len, conservative=True, eps=eps)
     return ORIGINAL_BUILD_VARIANT_MODEL(variant, backbone, seq_len, pred_len, tail_len, eps)
 
 
@@ -245,6 +332,8 @@ def main() -> None:
                 "future_center_selector_drift",
                 "future_center_residual_shift",
                 "future_center_residual_shift_cap015",
+                "future_center_horizon_selector",
+                "future_center_horizon_conservative",
             )
         )
     )
