@@ -20,12 +20,20 @@ SEEDS="${SEEDS:-2026,2027,2028}"
 METHODS="${METHODS:-raw_no_correction,HalluGuard-LRBN,matched_sparse_smoothing,naive_smoothing,ema_smoothing,median_smoothing,RevIN,DishTS,SAN,NST,TAFAS}"
 DEVICE="${DEVICE:-auto}"
 EPOCHS="${EPOCHS:-10}"
+SAN_PERIOD_LEN="${SAN_PERIOD_LEN:-24}"
+SAN_STATION_LR="${SAN_STATION_LR:-0.0001}"
+SAN_PRETRAIN_EPOCHS="${SAN_PRETRAIN_EPOCHS:-5}"
 MAX_TRAIN_WINDOWS="${MAX_TRAIN_WINDOWS:-8192}"
 MAX_EVAL_WINDOWS="${MAX_EVAL_WINDOWS:-1024}"
 OUTPUT_DIR="${OUTPUT_DIR:-experiments/halluguard/results/lrbn_clean_claim_bigtable_v1}"
 FETCH_DATA="${FETCH_DATA:-0}"
 FETCH_DATASETS="${FETCH_DATASETS:-${DATASETS}}"
+FETCH_PLUGIN_REPOS="${FETCH_PLUGIN_REPOS:-1}"
 EXTRA_FLAGS="${EXTRA_FLAGS:-}"
+
+if [[ "${FETCH_PLUGIN_REPOS}" == "1" || "${FETCH_PLUGIN_REPOS}" == "true" || "${FETCH_PLUGIN_REPOS}" == "TRUE" ]]; then
+  bash scripts/fetch_plugin_repos.sh
+fi
 
 FETCH_FLAGS=()
 if [[ "${FETCH_DATA}" == "1" || "${FETCH_DATA}" == "true" || "${FETCH_DATA}" == "TRUE" ]]; then
@@ -41,6 +49,9 @@ python scripts/run_lrbn_clean_claim_bigtable.py \
   --data-root external/ETDataset \
   --output-dir "${OUTPUT_DIR}" \
   --epochs "${EPOCHS}" \
+  --san-period-len "${SAN_PERIOD_LEN}" \
+  --san-station-lr "${SAN_STATION_LR}" \
+  --san-pretrain-epochs "${SAN_PRETRAIN_EPOCHS}" \
   --max-train-windows "${MAX_TRAIN_WINDOWS}" \
   --max-eval-windows "${MAX_EVAL_WINDOWS}" \
   --device "${DEVICE}" \

@@ -75,6 +75,9 @@ def main() -> None:
     parser.add_argument("--epochs", type=int, default=10)
     parser.add_argument("--batch-size", type=int, default=256)
     parser.add_argument("--learning-rate", type=float, default=1e-3)
+    parser.add_argument("--san-period-len", type=int, default=24)
+    parser.add_argument("--san-station-lr", type=float, default=1e-4)
+    parser.add_argument("--san-pretrain-epochs", type=int, default=5)
     parser.add_argument("--max-train-windows", type=int, default=8192)
     parser.add_argument("--max-eval-windows", type=int, default=1024)
     parser.add_argument("--device", default="auto", choices=["auto", "cpu", "cuda"])
@@ -218,6 +221,12 @@ def run_supported_config(cfg: Config, methods: Sequence[str], args: argparse.Nam
                 str(args.batch_size),
                 "--learning-rate",
                 str(args.learning_rate),
+                "--san-period-len",
+                str(args.san_period_len),
+                "--san-station-lr",
+                str(args.san_station_lr),
+                "--san-pretrain-epochs",
+                str(args.san_pretrain_epochs),
                 "--max-train-windows",
                 str(args.max_train_windows),
                 "--max-eval-windows",

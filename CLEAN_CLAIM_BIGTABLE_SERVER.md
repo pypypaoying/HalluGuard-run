@@ -14,6 +14,10 @@ The exploratory NST/future-center lines are not part of the main claim table.
 bash scripts/run_clean_claim_bigtable.sh
 ```
 
+The command fetches pinned public baseline repos by default through
+`scripts/fetch_plugin_repos.sh`. Set `FETCH_PLUGIN_REPOS=0` only if
+`external/plugin_baselines/` is already populated and pinned locally.
+
 First run on a fresh server should fetch data explicitly:
 
 ```bash
@@ -68,11 +72,18 @@ contract:
 - backbones: local DLinear/PatchTST plus public Time-Series-Library
   `iTransformer`, `TimesNet`, and `TimeMixer` classes wrapped into the same
   `context -> prediction` exporter
+- SAN: uses the official `Statistics_prediction` module with train-split
+  station pretraining (`SAN_PRETRAIN_EPOCHS`, default `5`) and default
+  `SAN_PERIOD_LEN=24`
+- DishTS: uses the official `DishTS.py` normalization module on a raw-data
+  path, matching the paper/repo motivation that preprocessing can hide
+  distribution shift
 
 This is a fairness-oriented unified protocol rather than each official repo's
-full leaderboard recipe. Smoothing controls are post-hoc baselines generated
-from the same raw prediction files; `matched_sparse_smoothing` calibrates its
-trigger only on `split="val"`.
+full leaderboard recipe. SAN and DishTS are now stronger mechanism-faithful
+adapters, but still not each repo's full hyperparameter-swept leaderboard run.
+Smoothing controls are post-hoc baselines generated from the same raw prediction
+files; `matched_sparse_smoothing` calibrates its trigger only on `split="val"`.
 
 ## Smoke
 
@@ -86,9 +97,13 @@ EXTRA_FLAGS="--smoke" EPOCHS=1 MAX_TRAIN_WINDOWS=128 MAX_EVAL_WINDOWS=32 \
 ```bash
 DEVICE=cuda \
 EPOCHS=10 \
+SAN_PERIOD_LEN=24 \
+SAN_STATION_LR=0.0001 \
+SAN_PRETRAIN_EPOCHS=5 \
 MAX_TRAIN_WINDOWS=8192 \
 MAX_EVAL_WINDOWS=1024 \
 FETCH_DATA=1 \
+FETCH_PLUGIN_REPOS=1 \
 OUTPUT_DIR=experiments/halluguard/results/lrbn_clean_claim_bigtable_v1 \
   bash scripts/run_clean_claim_bigtable.sh
 ```
