@@ -40,7 +40,7 @@ experiments/halluguard/results/lrbn_clean_claim_bigtable_v1/summary_by_dataset.c
 ## Default Matrix
 
 - Datasets: `ETTm1, ETTm2, ETTh1, ETTh2, Weather, ECL, Traffic`
-- Backbones: `DLinear, PatchTST, iTransformer, TimesNet, TimeMixer, Nonstationary_Transformer`
+- Backbones: `DLinear, PatchTST, iTransformer, TimesNet, TimeMixer`
 - Horizons: `96,192,336,720`
 - Seeds: `2026,2027,2028`
 - Methods:
@@ -56,12 +56,23 @@ experiments/halluguard/results/lrbn_clean_claim_bigtable_v1/summary_by_dataset.c
   - `NST`
   - `TAFAS`
 
-Every requested row is written as `completed` or `blocked`. The current
-lightweight in-repo exporter completes `DLinear/PatchTST` on `ETTm1/ETTh1` and
-records the wider dataset/backbone rows as blocked until the corresponding
-official adapters are connected. Smoothing controls are post-hoc baselines
-generated from the same raw prediction files; `matched_sparse_smoothing`
-calibrates its trigger only on `split="val"`.
+Every requested row is written as `completed` or `blocked`. The current unified
+exporter completes the default matrix using one shared training/evaluation
+contract:
+
+- data: single target series, `target=OT` when available, otherwise the last
+  numeric column
+- split: ETT official 12/4/4-month split; Weather/ECL/Traffic use 70/10/20
+- `seq_len=96`, shared horizons, seeds, optimizer, epoch budget, batch size,
+  and train/eval window caps
+- backbones: local DLinear/PatchTST plus public Time-Series-Library
+  `iTransformer`, `TimesNet`, and `TimeMixer` classes wrapped into the same
+  `context -> prediction` exporter
+
+This is a fairness-oriented unified protocol rather than each official repo's
+full leaderboard recipe. Smoothing controls are post-hoc baselines generated
+from the same raw prediction files; `matched_sparse_smoothing` calibrates its
+trigger only on `split="val"`.
 
 ## Smoke
 
@@ -89,6 +100,18 @@ DATASETS=ETTm1,ETTh1 \
 BACKBONES=DLinear,PatchTST \
 SEEDS=2026,2027,2028 \
 FETCH_DATA=1 \
+  bash scripts/run_clean_claim_bigtable.sh
+```
+
+To run the expanded default matrix:
+
+```bash
+FETCH_DATA=1 \
+DEVICE=cuda \
+EPOCHS=10 \
+MAX_TRAIN_WINDOWS=8192 \
+MAX_EVAL_WINDOWS=1024 \
+OUTPUT_DIR=experiments/halluguard/results/lrbn_clean_claim_bigtable_v2_expanded \
   bash scripts/run_clean_claim_bigtable.sh
 ```
 

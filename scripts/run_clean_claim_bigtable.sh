@@ -5,15 +5,16 @@ set -euo pipefail
 #
 # Default full matrix:
 #   datasets: ETTm1, ETTm2, ETTh1, ETTh2, Weather, ECL, Traffic
-#   backbones: DLinear, PatchTST, iTransformer, TimesNet, TimeMixer, Nonstationary_Transformer
+#   backbones: DLinear, PatchTST, iTransformer, TimesNet, TimeMixer
 #   horizons: 96,192,336,720
 #   seeds: 2026,2027,2028
 #
-# Current lightweight in-repo runner completes DLinear/PatchTST on ETTm1/ETTh1
-# and records unsupported rows as blocked with reproducible blocker reasons.
+# Current unified runner completes the default matrix through one shared
+# lightweight training/evaluation contract. Any future unsupported row is still
+# recorded as blocked with a reproducible blocker reason.
 
 DATASETS="${DATASETS:-ETTm1,ETTm2,ETTh1,ETTh2,Weather,ECL,Traffic}"
-BACKBONES="${BACKBONES:-DLinear,PatchTST,iTransformer,TimesNet,TimeMixer,Nonstationary_Transformer}"
+BACKBONES="${BACKBONES:-DLinear,PatchTST,iTransformer,TimesNet,TimeMixer}"
 HORIZONS="${HORIZONS:-96,192,336,720}"
 SEEDS="${SEEDS:-2026,2027,2028}"
 METHODS="${METHODS:-raw_no_correction,HalluGuard-LRBN,matched_sparse_smoothing,naive_smoothing,ema_smoothing,median_smoothing,RevIN,DishTS,SAN,NST,TAFAS}"

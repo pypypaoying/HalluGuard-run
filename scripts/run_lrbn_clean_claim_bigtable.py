@@ -31,9 +31,9 @@ CORE12_SCRIPT = REPO_ROOT / "scripts" / "run_core12_predictions.py"
 FETCH_DATA_SCRIPT = REPO_ROOT / "scripts" / "fetch_core_datasets.py"
 
 DEFAULT_DATASETS = ("ETTm1", "ETTm2", "ETTh1", "ETTh2", "Weather", "ECL", "Traffic")
-SUPPORTED_DATASETS = ("ETTm1", "ETTh1")
-DEFAULT_BACKBONES = ("DLinear", "PatchTST", "iTransformer", "TimesNet", "TimeMixer", "Nonstationary_Transformer")
-SUPPORTED_BACKBONES = ("DLinear", "PatchTST")
+SUPPORTED_DATASETS = ("ETTm1", "ETTm2", "ETTh1", "ETTh2", "Weather", "ECL", "Traffic")
+DEFAULT_BACKBONES = ("DLinear", "PatchTST", "iTransformer", "TimesNet", "TimeMixer")
+SUPPORTED_BACKBONES = ("DLinear", "PatchTST", "iTransformer", "TimesNet", "TimeMixer")
 DEFAULT_HORIZONS = (96, 192, 336, 720)
 DEFAULT_SEEDS = (2026, 2027, 2028)
 DEFAULT_ADAPTATION_METHODS = (

@@ -1,4 +1,4 @@
-"""Train lightweight real-data DLinear/PatchTST forecasters and export HalluGuard JSONL.
+"""Train lightweight real-data forecasters and export HalluGuard JSONL.
 
 This script intentionally lives under external/ so HalluGuard core evaluation stays
 model-agnostic. It uses public ETT CSV files and exports only:
@@ -9,11 +9,14 @@ sample_id, dataset, model, split, context, prediction, target
 from __future__ import annotations
 
 import argparse
+import importlib
 import json
 import math
 import random
+import sys
 from dataclasses import dataclass
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Iterable, List, Tuple
 
 import numpy as np
@@ -23,10 +26,26 @@ from torch import nn
 from torch.utils.data import DataLoader, Dataset
 
 
+REPO_ROOT = Path(__file__).resolve().parents[2]
+TSLIB_ROOT = REPO_ROOT / "external" / "Time-Series-Library"
+if str(TSLIB_ROOT) not in sys.path:
+    sys.path.insert(0, str(TSLIB_ROOT))
+
 STANDARD_BORDERS = {
     "ETTh1": (12 * 30 * 24, 4 * 30 * 24, 4 * 30 * 24),
+    "ETTh2": (12 * 30 * 24, 4 * 30 * 24, 4 * 30 * 24),
     "ETTm1": (12 * 30 * 24 * 4, 4 * 30 * 24 * 4, 4 * 30 * 24 * 4),
+    "ETTm2": (12 * 30 * 24 * 4, 4 * 30 * 24 * 4, 4 * 30 * 24 * 4),
 }
+CUSTOM_DATASETS = {
+    "Weather": ("weather", "weather.csv"),
+    "ECL": ("electricity", "electricity.csv"),
+    "Electricity": ("electricity", "electricity.csv"),
+    "Traffic": ("traffic", "traffic.csv"),
+}
+SUPPORTED_DATASETS = tuple(STANDARD_BORDERS) + ("Weather", "ECL", "Traffic")
+SUPPORTED_MODELS = ("DLinear", "PatchTST", "iTransformer", "TimesNet", "TimeMixer")
+DATA_LENGTHS: dict[str, int] = {}
 
 
 @dataclass
@@ -133,10 +152,31 @@ class TinyPatchTST(nn.Module):
         return out * stdev[:, 0:1, :] + means[:, 0:1, :]
 
 
+class TSLibForecastWrapper(nn.Module):
+    """Wrap public Time-Series-Library models into the local x->[y] contract."""
+
+    def __init__(self, model_name: str, seq_len: int, pred_len: int):
+        super().__init__()
+        module = importlib.import_module(f"models.{model_name}")
+        cfg = tslib_config(seq_len, pred_len)
+        self.model = module.Model(cfg)
+        self.pred_len = int(pred_len)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        # Some official TSLib models use in-place input normalization. That is
+        # fine for ordinary forecaster training, but LRBN wraps the backbone
+        # with learnable input normalization, making x require gradients. Use a
+        # detached backbone input in that case while keeping backbone parameter
+        # gradients and LRBN output denormalization gradients intact.
+        x_model = x.detach().clone() if x.requires_grad else x
+        out = self.model(x_model, None, None, None)
+        return out[:, -self.pred_len :, :]
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Export real ETT predictions for HalluGuard.")
-    parser.add_argument("--dataset", required=True, choices=["ETTm1", "ETTh1"])
-    parser.add_argument("--model", required=True, choices=["DLinear", "PatchTST"])
+    parser.add_argument("--dataset", required=True, choices=list(SUPPORTED_DATASETS))
+    parser.add_argument("--model", required=True, choices=list(SUPPORTED_MODELS))
     parser.add_argument("--horizon", required=True, type=int, choices=[96, 192, 336, 720])
     parser.add_argument("--data-root", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
@@ -204,21 +244,23 @@ def choose_device(requested: str) -> torch.device:
 
 
 def load_series(dataset: str, data_root: Path) -> Tuple[np.ndarray, Scaler]:
-    path = data_root / "ETT-small" / f"{dataset}.csv"
+    dataset = normalize_dataset_name(dataset)
+    path = dataset_path(dataset, data_root)
     if not path.exists():
-        raise FileNotFoundError(f"Missing ETT file: {path}")
+        raise FileNotFoundError(f"Missing dataset file: {path}")
     frame = pd.read_csv(path)
-    if "OT" not in frame.columns:
-        raise ValueError(f"Expected OT column in {path}")
-    series = frame["OT"].to_numpy(dtype=np.float32)
-    train_len, _, _ = STANDARD_BORDERS[dataset]
+    target = target_column(frame)
+    series = frame[target].to_numpy(dtype=np.float32)
+    DATA_LENGTHS[dataset] = len(series)
+    train_len, _, _ = split_lengths(dataset, len(series))
     train = series[:train_len]
     scaler = Scaler(float(train.mean()), float(train.std() + 1e-6))
     return series, scaler
 
 
 def split_starts(dataset: str, seq_len: int, pred_len: int, split: str) -> List[int]:
-    train_len, val_len, test_len = STANDARD_BORDERS[dataset]
+    dataset = normalize_dataset_name(dataset)
+    train_len, val_len, test_len = split_lengths(dataset, DATA_LENGTHS.get(dataset))
     if split == "train":
         left, right = 0, train_len
     elif split == "val":
@@ -245,7 +287,72 @@ def build_model(model_name: str, seq_len: int, pred_len: int) -> nn.Module:
         return TinyDLinear(seq_len, pred_len)
     if model_name == "PatchTST":
         return TinyPatchTST(seq_len, pred_len)
+    if model_name in {"iTransformer", "TimesNet", "TimeMixer"}:
+        return TSLibForecastWrapper(model_name, seq_len, pred_len)
     raise ValueError(model_name)
+
+
+def normalize_dataset_name(dataset: str) -> str:
+    return "ECL" if dataset == "Electricity" else dataset
+
+
+def dataset_path(dataset: str, data_root: Path) -> Path:
+    if dataset in STANDARD_BORDERS:
+        return data_root / "ETT-small" / f"{dataset}.csv"
+    subdir, filename = CUSTOM_DATASETS[dataset]
+    return TSLIB_ROOT / "dataset" / subdir / filename
+
+
+def target_column(frame: pd.DataFrame) -> str:
+    if "OT" in frame.columns:
+        return "OT"
+    numeric_cols = [c for c in frame.columns if c != "date" and pd.api.types.is_numeric_dtype(frame[c])]
+    if not numeric_cols:
+        raise ValueError("No numeric target column found")
+    return numeric_cols[-1]
+
+
+def split_lengths(dataset: str, total_len: int | None = None) -> Tuple[int, int, int]:
+    if dataset in STANDARD_BORDERS:
+        return STANDARD_BORDERS[dataset]
+    if total_len is None:
+        raise ValueError(f"Need loaded dataset length before splitting {dataset}")
+    train_len = int(total_len * 0.7)
+    test_len = int(total_len * 0.2)
+    val_len = total_len - train_len - test_len
+    return train_len, val_len, test_len
+
+
+def tslib_config(seq_len: int, pred_len: int) -> SimpleNamespace:
+    return SimpleNamespace(
+        task_name="long_term_forecast",
+        seq_len=int(seq_len),
+        label_len=max(1, int(seq_len) // 2),
+        pred_len=int(pred_len),
+        enc_in=1,
+        dec_in=1,
+        c_out=1,
+        d_model=32,
+        n_heads=4,
+        e_layers=1,
+        d_layers=1,
+        d_ff=64,
+        factor=3,
+        dropout=0.05,
+        activation="gelu",
+        embed="fixed",
+        freq="h",
+        top_k=2,
+        num_kernels=3,
+        moving_avg=25,
+        down_sampling_layers=1,
+        down_sampling_window=2,
+        down_sampling_method="avg",
+        channel_independence=1,
+        decomp_method="moving_avg",
+        use_norm=1,
+        output_attention=False,
+    )
 
 
 def train_model(

@@ -33,6 +33,7 @@ DATASETS = {
     "ETTh1": DatasetSpec("ETTh1", "ETTh1", "ETT-small", "ETTh1.csv", "core", True),
     "Weather": DatasetSpec("Weather", "weather", "weather", "weather.csv", "core"),
     "Electricity": DatasetSpec("Electricity", "electricity", "electricity", "electricity.csv", "core"),
+    "ECL": DatasetSpec("ECL", "electricity", "electricity", "electricity.csv", "core"),
     "ETTm2": DatasetSpec("ETTm2", "ETTm2", "ETT-small", "ETTm2.csv", "optional_extended", True),
     "ETTh2": DatasetSpec("ETTh2", "ETTh2", "ETT-small", "ETTh2.csv", "optional_extended", True),
     "Traffic": DatasetSpec("Traffic", "traffic", "traffic", "traffic.csv", "optional_extended"),
