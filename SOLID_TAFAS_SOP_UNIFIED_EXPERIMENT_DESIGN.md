@@ -43,11 +43,14 @@ post-processing:
 - TAFAS with partially observed ground truth.
 - SOLID official PatchTST protocol with `seq_len=336`, if we want to reproduce
   the KDD-style setting exactly.
-- SoP official Exchange scripts, if we want to report exact public-repo
-  reproducibility.
 
 Table B should be interpreted as mechanism validation and official-repo
 alignment, not as the primary fair clean-MSE table.
+
+SoP is not appendix-only. It is an offline frozen-backbone calibration method,
+so it belongs in Table A under the unified setting. Its official Exchange
+script can be kept only as a reproducibility sanity check, not as a separate
+scientific table.
 
 ## 2. Dataset Matrix
 
@@ -210,12 +213,18 @@ SAN
 NST
 SoP-step-wise
 SoP-variable-wise
-SOLID-offline-val-library
+SOLID-PatchTST-only
 matched_sparse_smoothing
 naive_smoothing
 ema_smoothing
 median_smoothing
 ```
+
+SOLID is listed as a PatchTST-only strong baseline. Do not average SOLID across
+non-PatchTST backbones unless a faithful official-compatible adapter is
+implemented for those models. For non-PatchTST rows, use
+`status=not_applicable` or omit SOLID from that backbone-specific mean rather
+than pretending it is a model-agnostic competitor.
 
 ### Online / partially observed methods
 
@@ -235,7 +244,7 @@ Only after single-method baselines are stable:
 
 ```text
 HalluGuard-LRBN + SoP
-HalluGuard-LRBN + SOLID
+HalluGuard-LRBN + SOLID, PatchTST only
 HalluGuard-LRBN + TAFAS-online
 ```
 
@@ -289,15 +298,17 @@ Report both:
 
 ### SOLID
 
-Unified offline variant:
+Unified table variant:
 
 ```text
-SOLID-offline-val-library
+SOLID-PatchTST-only
 ```
 
 Settings:
 
-- Train source forecaster on train split.
+- Run only where the source forecaster is PatchTST, unless a faithful
+  official-compatible implementation for another backbone is added later.
+- Train PatchTST source forecaster on train split.
 - Build residual/context library from train + val windows only.
 - Use validation split to choose:
   - `selected_data_num`
@@ -323,6 +334,14 @@ selected_data_num = 10
 adapted_lr_times = 10
 adapted_lr_multiplier = 10
 ```
+
+Interpretation:
+
+- SOLID is a strong PatchTST-specific adaptation baseline.
+- It should compete directly against `raw_no_correction`, `HalluGuard-LRBN`,
+  SoP, RevIN/Dish-TS/SAN/NST, and smoothing on PatchTST rows.
+- It should not be used to claim all-backbone average superiority unless the
+  non-PatchTST rows are explicitly supported.
 
 ### TAFAS
 
@@ -386,24 +405,55 @@ method using validation-only calibration.
 
 ## 8. Training Budget and Optimizer Contract
 
-Primary setting:
+Current HalluGuard-run implementation status:
+
+```text
+scripts/run_clean_claim_bigtable.sh default:
+EPOCHS = 10
+BATCH_SIZE = 256
+LEARNING_RATE = 1e-3
+SAN_PRETRAIN_EPOCHS = 5
+MAX_TRAIN_WINDOWS = 8192
+MAX_EVAL_WINDOWS = 1024
+early_stopping = not currently implemented in the lightweight runner
+```
+
+The current runner aligns LRBN, RevIN/Dish-TS/SAN/NST/TAFAS-wrapper, and
+smoothing controls by giving them the same epoch count, batch size, learning
+rate, seed, window cap, and train/val/test split. It does not yet align SoP and
+SOLID because those adapters are not implemented in the same runner.
+
+Recommended final unified setting after adding SoP/SOLID adapters:
 
 ```text
 seeds = 2026, 2027, 2028
 optimizer = Adam
-learning_rate = 1e-4 for DLinear/PatchTST/iTransformer unless official model requires otherwise
-batch_size = 32 or 64, fixed per backbone across methods
-max_epochs = 10 for broad table
-early_stopping_patience = 3
+learning_rate = validation-selected from {1e-4, 5e-4, 1e-3}, with the same grid for all trainable wrappers on a given backbone
+batch_size = 256 by default, reduced only for OOM and recorded per row
+max_epochs = 10 for the broad resource-controlled table
+early_stopping_patience = none in the current runner; use fixed epochs for strict budget alignment
 loss = MSE
 ```
 
-For publication-quality confirmation, rerun the top methods with:
+If we implement uniform early stopping, use the same rule for every trainable
+method:
 
 ```text
-max_epochs = 20 or 30
+validation_metric = val MSE
+max_epochs = 20
 early_stopping_patience = 5
-no train/eval window cap when feasible
+restore_best_val_checkpoint = true
+```
+
+Do not give SoP or SOLID a longer hidden tuning budget than LRBN/RevIN/Dish-TS.
+If SoP plug training needs a second stage, the base forecaster checkpoint must
+be shared and frozen, and the plug stage budget must be reported separately:
+
+```text
+base_forecaster_epochs = same as raw/LRBN source
+SoP_plug_max_epochs = 10 broad table, 20 confirmation table
+SoP_plug_patience = none if fixed-budget; 5 only if all methods use early stopping
+SOLID_adaptation_steps = validation-selected from the declared grid
 ```
 
 If server limits require caps, use the same caps for every method and report
@@ -517,7 +567,8 @@ models = DLinear, PatchTST, iTransformer
 horizons = 96, 192, 336, 720
 seeds = 2026, 2027, 2028
 methods = raw, HalluGuard-LRBN, RevIN, Dish-TS, SAN, NST-compatible,
-          SoP-step, SoP-variable, SOLID-offline, smoothing controls
+          SoP-step, SoP-variable, smoothing controls
+extra PatchTST-only baseline = SOLID-PatchTST-only
 ```
 
 ### Expanded generalization table
@@ -549,13 +600,6 @@ datasets = official SOLID supported datasets
 horizons = 96, 192, 336, 720
 ```
 
-```text
-Table B3: SoP official Exchange reproduction
-dataset = Exchange
-models = DLinear, FEDformer, TSMixer, SOFTS, PatchTST, iTransformer
-settings = official SoP scripts plus clearly documented fixes
-```
-
 ## 13. Claim Boundary
 
 The new experiment should support one of three conclusions:
@@ -572,6 +616,8 @@ Do not claim:
 - HalluGuard-LRBN beats TAFAS if TAFAS is using partial ground truth and LRBN is
   not.
 - HalluGuard-LRBN beats SoP unless both use the same backbone and split.
+- HalluGuard-LRBN beats SOLID globally unless the comparison is restricted to
+  PatchTST rows or SOLID is faithfully implemented for the other backbones.
 - NST results on non-attention backbones are official NST unless the attention
   mechanism is actually implemented.
 - A capped-window broad table is identical to an official full-data leaderboard.
@@ -589,4 +635,3 @@ Do not claim:
 5. Add Table B1 TAFAS online appendix.
 6. Add Table B2/B3 official-protocol appendices only after the unified table is
    stable.
-
