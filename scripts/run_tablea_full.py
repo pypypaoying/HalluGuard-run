@@ -143,6 +143,8 @@ def main() -> None:
     for subdir in ("predictions", "manifests", "logs"):
         (args.output_dir / subdir).mkdir(parents=True, exist_ok=True)
 
+    preflight_runtime(args)
+
     if args.fetch_plugin_repos:
         base.print_progress(f"fetch-plugin-repos log={args.output_dir / 'logs' / 'fetch_plugin_repos.log'}")
         base.run_command(["bash", str(FETCH_PLUGIN_REPOS_SCRIPT)], args.output_dir / "logs" / "fetch_plugin_repos.log")
@@ -237,7 +239,7 @@ def run_config(cfg: Config, methods: Sequence[str], args: argparse.Namespace) ->
             base.run_command(cmd, args.output_dir / "logs" / f"{cfg.tag}_lrbn.log")
         else:
             base.print_progress(f"skip existing LRBN/raw {cfg.tag}")
-        rows.extend(base.lrbn_rows_from_metrics(cfg, out_dir, lrbn_methods))
+        rows.extend(lrbn_rows_from_metrics(cfg, out_dir, lrbn_methods))
 
     if adapter_methods:
         adapter_dir = args.output_dir / "predictions" / "tablea_adapters" / cfg.tag
@@ -302,6 +304,9 @@ def run_config(cfg: Config, methods: Sequence[str], args: argparse.Namespace) ->
         for method in smoothing_methods:
             try:
                 out_path = smoothing_dir / f"{cfg.dataset}_{cfg.backbone}_{cfg.horizon}_{method}.jsonl"
+                if not raw_path.exists():
+                    rows.append(base.blocked_row(cfg, method, raw_prediction_blocker(args, cfg)))
+                    continue
                 if not (args.skip_existing and out_path.exists()):
                     base.print_progress(f"write smoothing {cfg.tag} method={method}")
                     base.write_smoothing_predictions(raw_path, out_path, method)
@@ -314,6 +319,83 @@ def run_config(cfg: Config, methods: Sequence[str], args: argparse.Namespace) ->
     for method in unknown_methods:
         rows.append(base.blocked_row(cfg, method, f"unknown TableA method: {method}"))
     return rows
+
+
+def preflight_runtime(args: argparse.Namespace) -> None:
+    if args.device != "cuda":
+        return
+    try:
+        import torch
+
+        if not torch.cuda.is_available():
+            raise RuntimeError(
+                "torch.cuda.is_available() is False. Install a CUDA wheel compatible with the server driver "
+                "or rerun with DEVICE=cpu for a slow wiring test."
+            )
+        torch.empty(1, device="cuda")
+    except Exception as exc:
+        raise SystemExit(
+            "CUDA preflight failed before launching TableA. This prevents a full matrix of misleading blocked rows.\n"
+            f"Reason: {type(exc).__name__}: {exc}\n"
+            "Recommended check: python -c \"import torch; print(torch.__version__, torch.version.cuda, torch.cuda.is_available())\"\n"
+            "If the driver reports CUDA 12.2, install a compatible wheel, for example:\n"
+            "  python -m pip uninstall -y torch torchvision torchaudio\n"
+            "  python -m pip install --index-url https://download.pytorch.org/whl/cu121 torch torchvision torchaudio\n"
+        ) from exc
+
+
+def lrbn_rows_from_metrics(cfg: Config, out_dir: Path, requested_methods: Sequence[str]) -> List[Dict[str, object]]:
+    path = out_dir / "lrbn_metrics.csv"
+    if not path.exists():
+        return [
+            base.blocked_row(cfg, m, f"missing LRBN metrics: {path}")
+            for m in requested_methods
+            if m in ("raw_no_correction", "HalluGuard-LRBN")
+        ]
+    raw_rows = base.read_csv(path)
+    out = []
+    for method in ("raw_no_correction", "HalluGuard-LRBN"):
+        if method not in requested_methods:
+            continue
+        variant = "raw_no_correction" if method == "raw_no_correction" else "unified_revin_rdn_hybrid"
+        completed = [r for r in raw_rows if r.get("variant") == variant and r.get("status") == "completed"]
+        if completed:
+            r = completed[0]
+            out.append(
+                base.metric_row(
+                    cfg,
+                    method,
+                    r.get("mse"),
+                    r.get("mae"),
+                    r.get("mse_delta_pct_vs_raw", ""),
+                    r.get("mae_delta_pct_vs_raw", ""),
+                    r.get("prediction_path", ""),
+                    str(out_dir),
+                    "completed",
+                    "",
+                )
+            )
+            continue
+        blocked = [r for r in raw_rows if r.get("variant") == variant and r.get("status") != "completed"]
+        if blocked:
+            reason = blocked[0].get("blocker_reason", "") or f"variant {variant} did not complete in {path}"
+            out.append(base.blocked_row(cfg, method, reason))
+        else:
+            out.append(base.blocked_row(cfg, method, f"missing completed variant {variant} in {path}"))
+    return out
+
+
+def raw_prediction_blocker(args: argparse.Namespace, cfg: Config) -> str:
+    out_dir = args.output_dir / "runs" / "halluguard_lrbn" / cfg.tag
+    path = out_dir / "lrbn_metrics.csv"
+    if path.exists():
+        for row in base.read_csv(path):
+            if row.get("variant") == "raw_no_correction" and row.get("status") != "completed":
+                reason = row.get("blocker_reason", "")
+                if reason:
+                    return f"raw prediction unavailable because raw_no_correction failed: {reason}"
+    raw_path = base.raw_prediction_path_for_cfg(args, cfg)
+    return f"raw prediction unavailable for smoothing controls: missing {raw_path}"
 
 
 def annotate_rows(rows: List[Dict[str, object]], args: argparse.Namespace) -> None:

@@ -51,6 +51,27 @@ python -m pip install -r requirements.txt
 
 If the server needs a specific CUDA wheel, install PyTorch first using the official command for that machine, then run `pip install -r requirements.txt`.
 
+Before launching the full table, check the installed PyTorch wheel against the
+server driver:
+
+```bash
+python -c "import torch; print(torch.__version__, torch.version.cuda, torch.cuda.is_available()); print(torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'no cuda')"
+```
+
+If the run fails with `The NVIDIA driver on your system is too old (found
+version 12020)`, the installed PyTorch wheel likely targets a newer CUDA runtime
+than the server driver supports. On a CUDA 12.2 driver, reinstall a compatible
+wheel before rerunning:
+
+```bash
+python -m pip uninstall -y torch torchvision torchaudio
+python -m pip install --index-url https://download.pytorch.org/whl/cu121 torch torchvision torchaudio
+python -m pip install -r requirements.txt
+```
+
+`DEVICE=cpu` is acceptable for a wiring smoke test, but not recommended for the
+full TableA.
+
 ## Full One-Command Run
 
 ```bash
