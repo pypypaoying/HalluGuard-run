@@ -1,0 +1,4 @@
+variant,split,rows,mean_energy_gini,spearman_highfreq_excess_vs_hf_residual,spearman_var_ratio_vs_low_residual,best_strength_val,mean_mse,raw_mean_mse,mean_mse_delta,mean_mse_delta_pct,harm_rate
+scale_residual_energy_analysis,test,768,0.5107133276463359,0.08506548256849936,-0.05403035105446888,,,,,,
+scale_residual_energy_analysis,val,768,0.5105880013998246,-0.16494972326443694,-0.16342095425237738,,,,,,
+multiscale_unsupported_hf_shrink,test,768,,,,0.75,6.111316302327761,6.4272205541616385,-0.3159042518338802,-4.91509897132473,0.0

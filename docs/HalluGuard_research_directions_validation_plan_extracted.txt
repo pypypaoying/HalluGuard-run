@@ -1,0 +1,448 @@
+HalluGuard 后预测校准与修正
+创新方向的理论基础、可证伪假设与验证实验设计
+面向时间序列 forecast calibration / correction / hallucination guard 的研究规划文档
+版本：v0.1  |  日期：2026-06-26  |  范围：理论归纳 + 实验验证蓝图
+本文档的定位
+• 不是把已有模块简单堆叠，而是把每个创新方向转化成可证伪的理论命题。
+• 每个方向均包含：理论基础、核心假设、架构构想、需要验证的内容、实验设计思路。
+• 最终目标是判断哪些方向有资格成为 HalluGuard 的下一代系统级创新，而不是局部 trick。
+0. 执行摘要
+当前 HalluGuard 的已验证价值在于：它作为 lightweight test-time correction layer，不重训 forecasting backbone，只使用 recent context 与 raw forecast，在验证集校准过的条件下执行小幅 output-level correction。公开说明中，项目强调处理 boundary jumps、trend changes、unsupported high-frequency behavior 等局部动态违规；当前最强线索包括 boundary-aware repair、selective residual smoothing、validation-calibrated routing，以及 stable guard 对 PatchTST 外部 harm 的控制。
+本文档把后续研究的核心问题抽象为一个残差对齐问题：给定 recent context x、原始预测 y_hat 和真实未来 y，修正器输出 delta 后得到 y_tilde = y_hat + delta。若 residual e = y - y_hat，则 MSE 是否改善取决于修正向量与真实残差是否同向。
+Delta MSE = ||delta - e||^2 - ||e||^2 = ||delta||^2 - 2 delta^T e
+因此，任何创新方向都应优先证明：它能在目标不可见的测试时刻，提高 delta 与 e 的方向对齐概率，并在无法判断时 abstain。这也是本文建议把 HalluGuard 从“后处理技巧”升级为“带风险控制的 forecast output calibration framework”的理论入口。
+建议优先级
+• 第一优先级：Residual alignment theory + No-harm selective correction。先证明当前机制为什么有效、何时有害。
+• 第二优先级：Decomposed residual dynamics corrector + Multiscale amplitude-phase support。用结构化 residual basis 扩大性能上限。
+• 第三优先级：Regime-invariant correction。解决模型受限、数据集受限和外部泛化不稳。
+• 探索方向：Energy/diffusion refinement 与 Time-series foundation model critic。先验证 critic separability 和 disagreement-harm correlation，再投入大模型。
+0.1 根问题与瓶颈映射
+当前瓶颈
+对应理论缺口
+本文建议的突破口
+适用模型受限
+修正规则可能学习了 backbone-specific bias，而非 forecast failure mechanism。
+跨 backbone residual alignment、backbone leave-one-out、foundation critic / regime invariant correction。
+适用数据集受限
+validation calibration 可能只覆盖少量 dataset regime，外部样本上 correction helpfulness 不可预测。
+target-free regime clustering、dataset leave-one-out、conformal-style no-harm guard。
+提升幅度受限
+当前修正多为局部 smoothing/boundary repair，无法覆盖 trend/seasonal/horizon-dependent residual。
+residual dynamics decomposition、basis corrector、多尺度 amplitude-phase 校准。
+外部 harm 风险
+router 优化平均 MSE，但没有显式控制正向 delta MSE 的概率。
+risk-coverage curve、selective correction、harm classifier、validation-calibrated abstention。
+理论说服力不足
+缺少“为什么这个 correction 应该降低误差”的可检验命题。
+alignment score、oracle action separability、residual explainability、critic separability。
+1. 统一理论框架：从修正幅度转向残差方向对齐
+所有 output-level correction 都可以被写成：
+y_tilde = y_hat + delta(x, y_hat)
+其中 delta 是修正器在测试时根据 context 和 raw forecast 产生的向量。设真实残差为 e = y - y_hat，则在平方损失下，修正有益的充要判据可以写成：
+2 delta^T e > ||delta||^2
+这个式子给出三个重要结论：
+修正幅度不是越大越好；如果方向错，即使幅度很小也可能造成 harm。
+只做 smoothing 可能在平均 MSE 上有收益，但若 smoothing 方向与真实残差不稳定对齐，就难以支撑强泛化 claim。
+HalluGuard 的下一步应显式建模“何时 delta 与 e 对齐”以及“何时无法判断而应 abstain”。
+1.1 建议引入的核心验证量
+验证量
+定义/计算方式
+解释
+Alignment ratio A
+A = 2 delta^T e / (||delta||^2 + eps)
+A > 1 时该 correction 在 MSE 意义下降低误差；A 越大，方向越可靠。
+Cosine alignment
+cos(delta, e) = delta^T e / (||delta|| ||e|| + eps)
+排除幅度影响后衡量方向是否正确。
+Correction energy ratio
+||delta|| / (||y_hat|| + eps) 或 ||delta|| / (||e|| + eps)
+判断收益来自合理修正还是过大扰动。
+Harm indicator
+1[ MSE(y_hat + delta, y) > MSE(y_hat, y) + epsilon ]
+用于 no-harm 选择性修正和风险控制。
+Oracle action gap
+loss(second-best action) - loss(best action)
+衡量 action selection 是否有足够可学信号；gap 太小则 router 学不稳。
+Regime stability
+同一 target-free regime 中最优 action / improvement 在不同 dataset、backbone、horizon 下的一致性
+验证是否存在跨域稳定的 correction law。
+2. 创新方向一：动态一致性投影器
+方向定义。 把 HalluGuard 从“若干手写 correction action 的选择器”升级为“把 raw forecast 投影回 context-conditioned dynamic manifold 的约束优化层”。
+2.1 理论基础
+该方向基于 constrained projection / trajectory manifold 的思想。raw forecast 可能在局部动态上不属于 recent context 支持的合理未来集合 M(x)：例如边界不连续、一阶差分突变、曲率异常、频谱支撑不一致。修正器不重新预测未来，而是在尽量保留 raw forecast 的前提下，找到一个更动态自洽的轨迹。
+y_tilde = argmin_z ||z - y_hat||^2 + lambda * D_dyn(z, x)
+其中 D_dyn 可以由 boundary、slope、curvature、spectral support、scale consistency 等约束组成。与 RevIN/NST 的差别是：RevIN/NST 主要处理输入或内部表示的非平稳性；动态一致性投影处理的是 输出轨迹是否违反 context 支持的局部动力学。
+2.2 核心假设
+H1-1：forecast hallucination 经常表现为少数可描述的动态约束违规，而不是任意白噪声。
+H1-2：这些违规与真实 residual e 的方向存在统计相关性，因此最小扰动投影能减少误差。
+H1-3：动态约束应主要作用在 forecast boundary 和近端 horizon，因为起点附近的错误具有最大传播杠杆。
+2.3 架构构想
+构建一个 differentiable / closed-form projection layer。它不直接用黑盒网络输出 delta，而是让小网络或验证集校准器预测约束权重 lambda，然后由显式投影求出修正。
+delta* = argmin_delta ||delta||^2 + sum_k lambda_k C_k(y_hat + delta, x)
+C_boundary：预测首点与 context last point + last diff 的一致性。
+C_slope / C_curvature：预测头部的一阶、二阶差分与 context tail 的一致性。
+C_spectral：预测频带能量与 context tail 支持范围的一致性。
+C_scale：预测方差、diff std、局部 roughness 不应偏离 context 支持太多。
+2.4 需要验证的内容与实验设计
+验证命题
+实验设计
+成功标准
+失败后的解释
+动态违规是否预测 residual 方向？
+对每个样本计算 boundary/slope/curvature/spectral mismatch，并计算 oracle residual e；检查 mismatch sign 与 residual projection 的相关性。
+多个数据集/模型上相关性显著；基于 mismatch 的 delta 的 A 值大于 1 的样本比例明显高于随机。
+若相关性弱，说明局部动态违规只是弱 proxy，需转向 residual dynamics 或 critic。
+投影是否优于直接 smoothing？
+实现 closed-form quadratic projection，与 median/EMA/matched smoothing 在相同触发率下比较。
+clean/stress gain 接近或超过 smoothing，同时 external harm 更低。
+若 MSE 弱于 smoothing 且 harm 不低，说明投影约束不够表达 residual 结构。
+约束权重是否可迁移？
+在 DLinear 上校准 lambda，在 PatchTST / 其他数据集上测试；反向也做。
+leave-one-backbone/dataset 后仍有正收益或低 harm。
+若只在源模型有效，需要加入 backbone-aware 或 regime-aware 校准。
+3. 创新方向二：带 no-harm 保证的选择性修正
+方向定义。 把目标从“平均 MSE 提升”升级为“在可控 harm rate 下选择性修正”。核心不是更复杂 router，而是显式建模 correction risk 与 abstention。
+3.1 理论基础
+该方向受 selective prediction、reject option、conformal prediction、conformal risk control 启发。对 HalluGuard 来说，关键不是每个样本都修，而是在无法判断 correction 是否有益时保留 raw forecast。
+y_tilde = action(y_hat, x), if R(x, y_hat, action) <= tau; otherwise y_hat
+这里 R 不是预测误差本身，而是 correction risk score，目标是控制 P(Delta MSE > epsilon | correct)。
+3.2 核心假设
+H2-1：HalluGuard 的主要风险不是找不到有用 correction，而是无法可靠地区分“该修”和“不该修”。
+H2-2：harm 不是随机发生，能被 target-free 特征预测，例如 stable forecast score、router margin、diff std ratio、unsupported correction magnitude、OOD context score。
+H2-3：存在一个 coverage 区间，使得修正覆盖率下降不多，但 harm rate 和 worst-group harm 明显降低。
+3.3 架构构想
+学习或校准一个 risk score R，而非只学习 action probability。
+用 validation split 选择 threshold tau，优化 risk-coverage trade-off，而非只优化平均 MSE。
+输出不仅包括 corrected forecast，还包括 action、risk、coverage bucket、abstain reason。
+target:  minimize mean loss under constraint  P(harm | correct) <= alpha
+3.4 需要验证的内容与实验设计
+验证命题
+实验设计
+关键指标
+成功标准
+harm 是否可预测？
+将标签设为 1[correction 后 MSE 变差]，使用 target-free features 训练 logistic / GBDT / shallow MLP harm classifier。
+AUROC、AUPRC、Brier、ECE、group-wise recall。
+AUROC 明显高于 shuffled features；高风险桶 harm rate 显著高于低风险桶。
+是否存在稳定 risk-coverage frontier？
+按 R 从低到高逐步放宽 correction coverage，画 coverage vs improvement / harm rate / worst-group harm。
+coverage、mean delta、harm rate、PatchTST harm configs。
+在 40%-80% coverage 区间仍有负 MSE delta，且 harm rate 显著低于全修正。
+validation 校准是否外推？
+在源数据集校准 tau，在外部数据集/backbone 上测试；做 dataset leave-one-out。
+external harm、worst-group harm、coverage 稳定性。
+tau 不需要重调或只需少量校准即可保持低 harm。
+4. 创新方向三：结构化残差动力学建模
+方向定义。 不再只根据局部异常做小幅修复，而是显式学习 forecast residual process 的结构：level、slope、trend、seasonal、horizon-dependent bias、local spike。
+4.1 理论基础
+该方向的核心假设是：现代 forecasting backbone 的 error 并非全是白噪声，而是存在可学习、可分解、跨模型部分共享的 residual dynamics。2026 年的 UEC-STD 预印本也沿着 architecture-agnostic error correction 的路线，提出对预测误差进行 trend/seasonal decomposition 并在不重训 forecaster 的情况下修正。
+e = y - y_hat = e_level + e_slope + e_trend + e_seasonal + e_hf + e_regime
+4.2 核心假设
+H3-1：oracle residual 在低维结构化 basis 上有较高 explained variance。
+H3-2：残差的部分 basis 权重可以由 x 与 y_hat 的 target-free 特征预测。
+H3-3：decomposed residual corrector 比直接 MLP residual predictor 更稳，因为它限制了 correction 的自由度。
+4.3 架构构想
+用基函数组合预测 residual，而不是直接生成完整未来轨迹：
+e_hat = B_boundary w_b + B_slope w_s + B_trend w_t + B_seasonal w_p + B_local w_l
+B_boundary：指数衰减的边界修复基。
+B_slope / B_curvature：一阶、二阶导数衔接基。
+B_trend：低频多项式 / spline / DCT 低频基。
+B_seasonal：周期基或 learnable Fourier basis。
+B_local：稀疏局部 spike / unsupported residual basis。
+最终 correction 应带 shrinkage：y_tilde = y_hat + gamma * e_hat，其中 gamma 由风险校准或 conformal-style coverage 控制。
+4.4 需要验证的内容与实验设计
+验证命题
+实验设计
+成功标准
+注意事项
+residual 是否低维可解释？
+收集所有样本 e，做 PCA、DCT、wavelet、STL/seasonal-trend decomposition，比较前 k 个 basis explained variance。
+前 5-20 个结构化 basis 能解释显著残差方差；不同数据集有共享成分。
+不要只看整体 variance，还要看高误差样本和 long horizon。
+basis 权重是否可预测？
+用 target-free features 预测 oracle basis weights，比较 R2 / rank correlation / sign accuracy。
+关键 basis 的 sign accuracy 明显高于随机，且 correction alignment A 提升。
+若只能预测幅度不能预测方向，必须引入 abstention。
+结构化 corrector 是否扩大上限？
+训练 basis-weight predictor；与当前 HalluGuard、UEC-style trend/seasonal corrector、直接 residual MLP 对比。
+MSE delta 幅度超过当前局部修正，并保持 low harm。
+直接 MLP 若表现好但泛化差，可作为 upper bound，不宜作为主叙事。
+5. 创新方向四：能量式 / 扩散式轨迹精修
+方向定义。 把 raw forecast 视为条件轨迹分布附近的有偏样本，通过 energy / score 将它推回更高概率的 future-like trajectory，而不是一次性 deterministic offset。
+5.1 理论基础
+扩散模型与 energy-based model 的启发是：先学习 p(y | x) 或一个等价的 trajectory plausibility score，再对 raw forecast 执行 refinement。对 HalluGuard，更轻量的版本不是直接做生成式 forecasting，而是训练一个 conditional critic E_theta(x, z)：真实未来低能量，坏 forecast / stress-corrupted future 高能量。
+y_tilde = y_hat - eta * grad_z E_theta(x, z)|_{z = y_hat}
+5.2 核心假设
+H4-1：真实未来 y、raw forecast y_hat、synthetic hallucinated forecast z_bad 在 trajectory plausibility 上可区分。
+H4-2：critic 的梯度方向与真实 residual e 有统计对齐，而不只是识别“假样本”。
+H4-3：synthetic stress suite 可以作为负样本生成器，而不仅是评测集。
+5.3 架构构想
+正样本：真实未来 y。
+负样本：raw forecast、边界跳变污染、相位错位、高频注入、variance shift、delayed level shift 等 corrupted future。
+训练目标：ranking loss / contrastive loss，使 E(x, y) < E(x, z_bad)。
+推理时只做 1-3 步小梯度 refinement，并由 no-harm risk score 决定是否启用。
+5.4 需要验证的内容与实验设计
+验证命题
+实验设计
+指标
+成功标准
+critic 是否能区分真实和坏轨迹？
+训练 binary / ranking critic：输入 (x, z)，标签为 true future-like vs corrupted/raw。
+AUC、ranking accuracy、OOD corrupted 类型上的泛化。
+AUC 高且对未见 corruption 有泛化。
+critic 分数是否预测 correction helpfulness？
+计算 critic score 与 raw MSE、Delta MSE、harm indicator 的相关性。
+Spearman、AUROC(harm)、分桶 MSE。
+低 plausibility 桶中 correction upper bound 更大，高 plausibility 桶应 abstain。
+score gradient 是否对齐 residual？
+在 validation 上对 y_hat 求 -grad E，计算 alignment ratio A 和 cosine(delta, e)。
+A > 1 的比例显著高于随机梯度/平滑方向。
+若 critic 能分类但梯度不对齐，只能作为 risk feature，不能作为 refinement engine。
+6. 创新方向五：时间序列 foundation model 作为轨迹先验/批判器
+方向定义。 不让 TS foundation model 替代 backbone，而是作为外部 trajectory prior / forecast critic，用于判断 raw forecast 是否偏离跨域时间序列先验。
+6.1 理论基础
+Chronos、TimesFM、Moirai-MoE 等工作说明，大规模跨域预训练可以学习一定的通用时间序列轨迹先验。但 HalluGuard 不应假设 foundation model 永远更准；更合理的定位是：foundation model 提供一个外部参照，用于发现 raw forecast 的异常、OOD 或不确定区域。
+6.2 核心假设
+H5-1：当 raw backbone forecast 出现 hallucination 时，它与 TSFM forecast / likelihood / quantile band 的 disagreement 会升高。
+H5-2：TSFM 作为 critic 比作为 teacher 更安全；不直接把 forecast 拉向 TSFM，而是用 disagreement 判断是否应修、修多少。
+H5-3：TSFM prior 能缓解 HalluGuard calibration set 太小导致的数据集受限。
+6.3 架构构想
+signals = Disagreement(y_hat_backbone, y_hat_TSFm; amplitude, slope, spectrum, quantile, likelihood)
+动作一：keep backbone，若 TSFM disagreement 低且 HalluGuard risk 低。
+动作二：small correction toward TSFM prior，仅在 TSFM 历史验证上可靠且 HalluGuard risk 高时。
+动作三：abstain / conservative guard，若 backbone 与 TSFM 都不确定或互相冲突。
+6.4 需要验证的内容与实验设计
+验证命题
+实验设计
+成功标准
+失败后的处理
+disagreement 是否提示 hallucination？
+在现有 clean/stress/external fixture 上加入 Chronos/TimesFM forecast，计算 amplitude/slope/spectral/quantile disagreement。
+disagreement 与 raw error、harm label、oracle correction gain 显著相关。
+若无相关性，TSFM 不适合作为主 critic，只能作为少数数据集上的 ensemble。
+TSFM 是否能降低外部 harm？
+把 TSFM disagreement 加入 no-harm risk score，比较加入前后的 risk-coverage frontier。
+PatchTST external harmed configs 减少，coverage 不大幅下降。
+若 harm 下降但 coverage 崩溃，说明 TSFM 过于保守。
+向 TSFM 拉近是否安全？
+只在高 disagreement 且 TSFM validation 更优的桶中做 convex correction：y_tilde = (1-alpha)y_hat + alpha y_TSFm。
+小 alpha 在高风险桶有稳定改善，低风险桶不启用。
+若经常被 TSFM 错误牵引，保留为 risk feature，不做 correction target。
+7. 创新方向六：多尺度 amplitude-phase 支持校准
+方向定义。 从粗糙的 high-frequency suppression / median smoothing，升级为多尺度、分频带、显式 amplitude-phase 的支持校准：只修正 context 不支持的尺度成分，而不是全局平滑。
+7.1 理论基础
+TimeMixer 从多尺度角度建模时间序列的微观/宏观模式；TimeAPN 显式讨论 amplitude 和 phase non-stationarity。这对 HalluGuard 的启发是：许多 forecast failure 并非“太抖”这么简单，而是某些频带的 amplitude、phase 或局部尺度支撑出错。
+7.2 核心假设
+H6-1：当前 smoothing 的收益来自删除 unsupported components，但 harm 来自误删真实动态成分。
+H6-2：forecast error 在尺度/频带上具有稀疏性，即不是所有尺度都错。
+H6-3：context-forecast 的 scale-wise mismatch 能预测对应尺度 residual。
+7.3 架构构想
+x -> {x^(s)},   y_hat -> {y_hat^(s)},   y_tilde = sum_s edit_s(y_hat^(s) | x^(s))
+用 wavelet / DCT / moving average pyramid / STL-like decomposition 得到多尺度成分。
+每个尺度独立计算 support score：amplitude ratio、phase shift、spectral mass、local roughness。
+只对 unsupported scale 做 shrinkage 或 phase correction；对 supported scale 保持不动。
+7.4 需要验证的内容与实验设计
+验证命题
+实验设计
+指标/图表
+成功标准
+错误是否集中在少数尺度？
+把 y、y_hat、e 分解到 S 个尺度，统计各尺度 residual energy。
+scale-wise residual energy heatmap、Gini/sparsity。
+高误差样本的 residual energy 在少数尺度集中。
+mismatch 是否预测 scale residual？
+计算每个尺度的 forecast-context mismatch，与该尺度 ||e^(s)|| 相关。
+Spearman、linear R2、分桶 residual。
+至少若干尺度相关性稳定，且跨 dataset/backbone 不消失。
+多尺度编辑是否优于 smoothing？
+实现 scale-wise shrinkage/phase adjustment，与 median/EMA 同触发率比较。
+MSE delta、harm rate、turning-point preservation、spectral distortion。
+MSE 接近或超过 smoothing，同时更少抹掉真实转折和相位。
+8. 创新方向七：regime-invariant correction
+方向定义。 不在 dataset/backbone 层面学习 correction，而是在 target-free latent regime 层面学习 correction law。目标是让 HalluGuard 跨模型、跨数据集、跨 horizon 泛化。
+8.1 理论基础
+Dish-TS 将 time-series distribution shift 分成 intra-space shift 和 inter-space shift；Moirai-MoE 也指出频率标签不足以描述时间序列异质性。HalluGuard 的修正规则若以 dataset/backbone 为单位学习，很容易泛化失败；若以机制型 regime 为单位学习，则有机会形成可迁移的 correction law。
+8.2 核心假设
+H7-1：不同 dataset/backbone 下存在共享的 forecast failure regimes，例如 stable-low-noise、boundary-discontinuity、variance-shift、slope-break、unsupported-oscillation、delayed-level-shift。
+H7-2：同一 regime 内的最优 correction action 与 improvement distribution 比按 dataset/backbone 分组更稳定。
+H7-3：external harm 集中在少数可识别 regime 中，因此可以用 regime-aware abstention 控制。
+8.3 架构构想
+r = q_theta(x, y_hat),   delta = C_r(x, y_hat),   with regime-invariance penalty
+这里的 q_theta 不是普通 MoE router，而是受机制监督或机制约束的 regime encoder。可以利用 synthetic stress labels、residual shape labels、scale mismatch labels、harm labels 对 regime 施加解释性约束。
+8.4 需要验证的内容与实验设计
+验证命题
+实验设计
+成功标准
+失败后的解释
+target-free regime 是否存在？
+使用 boundary/slope/curvature/spectral/scale/stability features 聚类；再事后看每类 oracle best action 和 improvement。
+每个 cluster 内 best action 集中度高、gain variance 低。
+若 cluster 无意义，说明当前 feature 不能刻画机制，需要更强 representation。
+regime 是否跨域稳定？
+在某 dataset/backbone 上发现 regime，在其他 dataset/backbone 上投影，比较 action distribution 和 improvement。
+同一 regime 跨域 action/gain 方向一致。
+若不稳定，可能需要加入 backbone identity 或 domain normalization。
+regime-aware guard 是否降低 external harm？
+识别 harm-prone regimes，对其启用 abstain 或 conservative correction。
+worst-group harm 和 PatchTST harmed configs 下降，mean gain 损失可控。
+若 mean gain 大幅损失，说明 guard 过粗，需要 within-regime risk score。
+9. 各方向验证任务总表
+下表把七个方向压缩为可执行的理论验证任务。建议先完成这些验证，再决定是否进入完整模型实现。
+方向
+根假设
+最小验证实验
+Go / No-Go 判据
+动态一致性投影
+动态违规与 residual 方向对齐。
+Residual alignment analysis + constrained projection vs matched smoothing。
+A>1 的样本比例显著高于随机；external harm 低于 smoothing。
+No-harm 选择性修正
+harm 可由 target-free risk score 预测。
+Harm classifier + risk-coverage curve。
+存在中高 coverage 且低 harm 的稳定区间。
+残差动力学
+residual 有低维可解释结构。
+Residual PCA/DCT/wavelet/STL decomposition。
+少量 basis 解释显著残差方差，basis 权重可预测。
+能量/扩散精修
+真实轨迹与坏轨迹可分，且 score 梯度对齐 residual。
+Binary/ranking critic + gradient alignment。
+critic AUC 高，且 -grad E 的 A>1 比例高。
+TSFM critic
+foundation prior 的 disagreement 提示 hallucination/harm。
+加入 Chronos/TimesFM/Moirai forecast，分析 disagreement-error/harm 相关性。
+disagreement 改善 harm prediction 或 selective frontier。
+多尺度 amplitude-phase
+错误集中在特定尺度/频带，context support 可预测。
+Scale-wise residual energy + mismatch correlation。
+scale mismatch 与对应 residual 稳定相关，多尺度编辑优于全局 smoothing。
+Regime-invariant correction
+修正规律在 latent regime 上比 dataset/backbone 上更稳定。
+target-free clustering + cross-domain regime action stability。
+同一 regime 跨域 best action/gain 方向一致，harm 集中可控。
+10. 实验设计蓝图
+10.1 统一数据表格式
+建议先把所有实验统一为 forecast table，使后续所有理论验证都可复用。每条样本至少包含：
+dataset、split、backbone、horizon、channel / variable id、timestamp index。
+recent context x，raw forecast y_hat，target y。
+当前 HalluGuard action candidates 的 y_tilde 与 delta。
+target-free features：boundary、slope、curvature、high-frequency excess、spectral distance、variance ratio、diff std ratio、context volatility、stable score、router margin。
+oracle fields：residual e、best action、Delta MSE、harm indicator、alignment ratio A。
+10.2 数据集、模型与切分
+层面
+最低配置
+更强配置
+Backbone
+DLinear、PatchTST。
+加入 iTransformer、TimesNet、Informer/Autoformer/FEDformer、Mamba-based TSF 或当前 SOTA。
+Dataset
+保持现有 clean/stress/external fixture。
+加入 ETT、Electricity、Traffic、Weather、Exchange、ILI、Solar、M4/M5 子集；做 leave-one-dataset-out。
+Horizon
+96/192/336/720 或项目已有 horizons。
+分析 long-horizon instability：按 horizon bucket 统计 residual alignment 与 harm。
+Stress cases
+boundary discontinuity、trend drift、slope break、delayed level shift、high-frequency perturbation、variance shift。
+加入 amplitude shift、phase shift、mixed-regime、OOD volatility、calendar/seasonality break。
+Calibration
+validation-only thresholds。
+nested validation：一层选 action/threshold，一层估计 no-harm risk，避免 leakage。
+10.3 统一评价指标
+性能：MSE delta%、MAE delta%、per-horizon delta、per-channel delta。
+风险：harm rate、worst-group harm、PatchTST harmed configs、positive Delta MSE tail quantile。
+理论：alignment ratio A、cosine alignment、correction energy ratio、oracle action gap。
+选择性：coverage、selective risk、risk-coverage AUC、abstain rate。
+泛化：leave-one-dataset/backbone/horizon 的 mean delta 与 harm delta。
+机制：matched smoothing control、random trigger、shuffled feature router、dominant-action check、threshold leakage check。
+10.4 推荐实验顺序
+编号
+实验
+做什么
+产出
+E0
+构建统一 forecast table
+把已有 clean/stress/external 输出整理为统一样本级表。
+后续所有验证共用，避免每个方向重复实现。
+E1
+Residual alignment analysis
+计算当前所有 action 的 delta 与 oracle residual e 的 A、cosine、harm。
+判断当前收益来自真实方向对齐还是 smoothing 降方差。
+E2
+Oracle action separability
+用 target-free features 预测 validation oracle best action；与 shuffled features 对照。
+判断“何时修”是否可学习。
+E3
+Harm predictability + risk-coverage
+训练 harm classifier，画 coverage-improvement-harm 曲线。
+建立 no-harm 选择性修正主线。
+E4
+Residual basis decomposition
+PCA/DCT/wavelet/STL 分解 residual，评估 explained variance 与可预测性。
+决定是否投入 decomposed residual corrector。
+E5
+Constrained projection prototype
+实现 boundary/slope/curvature/spectral projection，与 smoothing 同触发率对比。
+验证动态一致性投影是否成立。
+E6
+Multiscale support analysis
+scale-wise residual energy 与 context-forecast mismatch 相关性。
+决定是否替代粗糙 smoothing。
+E7
+Critic separability
+训练 trajectory critic 区分 true future / raw forecast / corrupted future。
+决定 energy/diffusion refinement 是否值得。
+E8
+TSFM disagreement analysis
+加入 Chronos/TimesFM 等 forecast，分析 disagreement 与 error/harm。
+决定 foundation critic 是否纳入主线。
+E9
+Regime stability
+target-free clustering，分析跨域 best action 和 gain 稳定性。
+验证 regime-invariant correction 是否可行。
+E10
+组合系统评测
+把通过验证的模块组合为 conservative / performance 两个模式。
+形成论文主表、外部泛化表和 ablation 表。
+10.5 成功与失败判据
+建议的 Go 判据
+• 至少一个方向在 leave-one-backbone 或 leave-one-dataset 中保持负 MSE delta，同时 harm rate 不高于当前 stable guard。
+• 至少一个理论指标能解释收益：例如 alignment A、risk score、residual basis explained variance、scale mismatch correlation。
+• 主机制必须同时击败 random trigger、matched smoothing、shuffled-feature router 和 dominant-action baseline。
+• 外部泛化 claim 只能在更大 external benchmark 上成立；现有 external fixture 仍应定位为 harm diagnostic。
+<w:tblPr><w:tblW w:type="auto" w:w="0"/><w:jc w:val="center"/><w:tblLayout w:type="autofit"/><w:tblLook w:firstColumn="1" w:firstRow="1" w:lastColumn="0" w:lastRow="0" w:noHBand="0" w:noVBand="1" w:val="04A0"/></w:tblPr><w:tblGrid><w:gridCol w:w="10200"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcW w:type="dxa" w:w="10200"/><w:shd w:fill="FCECEC"/></w:tcPr><w:p><w:pPr><w:spacing w:before="0" w:after="40" w:line="252" w:lineRule="auto"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Noto Sans CJK SC" w:hAnsi="Noto Sans CJK SC" w:eastAsia="Noto Sans CJK SC"/><w:b/><w:sz w:val="20"/></w:rPr><w:t>建议的 No-Go 判据
+• 某方向只能在一个 dataset 或一个 backbone 上有效，且无法被 regime/risk/alignment 解释。
+• 提升全部来自 smoothing-like action，但 matched smoothing 同触发率下等价或更强。
+• harm classifier 与 risk-coverage 曲线不稳定，说明 no-harm claim 不成立。
+• residual 接近白噪声，且 basis 权重不可预测，则大 residual corrector 易过拟合。
+11. 面向论文叙事的建议
+如果上述验证成立，论文叙事可以从“post-processing improves forecasts”升级为以下更强命题：
+主命题草案
+• Forecast correction should be treated as selective residual alignment under target-free risk control.
+• A correction is useful only when its direction is aligned with the latent forecast residual; therefore, output guards must jointly model correction direction and abstention risk.
+• HalluGuard provides a model-agnostic framework that corrects locally inconsistent forecasts when alignment can be certified and abstains when no-harm cannot be supported.
+对应中文表述：HalluGuard 不是泛泛地“平滑预测”，而是在测试时使用 context 与 raw forecast 的目标不可见特征，判断 forecast 是否违反局部/多尺度/机制型动态约束；只有当修正方向有较高残差对齐可能性且 harm risk 受控时才修正。
+12. 参考文献与资料线索
+[H1] HalluGuard GitHub README: https://github.com/pypypaoying/HalluGuard
+[H2] HalluGuard Preliminary Results: https://github.com/pypypaoying/HalluGuard/blob/main/docs/preliminary_results.md
+[H3] HalluGuard Research Narrative: https://github.com/pypypaoying/HalluGuard/blob/main/docs/research_narrative.zh-CN.md
+[R1] Kim et al. Reversible Instance Normalization for Accurate Time-Series Forecasting against Distribution Shift. ICLR 2022.
+[R2] Liu et al. Non-stationary Transformers: Exploring the Stationarity in Time Series Forecasting. NeurIPS 2022 / arXiv:2205.14415.
+[R3] Geifman and El-Yaniv. SelectiveNet: A Deep Neural Network with an Integrated Reject Option. ICML 2019.
+[R4] Gibbs and Candes. Adaptive Conformal Inference Under Distribution Shift. NeurIPS 2021.
+[R5] Bates et al. Conformal Risk Control. arXiv:2208.02814.
+[R6] Nguyen et al. Reviving Error Correction in Modern Deep Time-Series Forecasting. arXiv:2605.21088, 2026 preprint.
+[R7] Wang et al. TimeMixer: Decomposable Multiscale Mixing for Time Series Forecasting. ICLR 2024 / arXiv:2405.14616.
+[R8] Hu et al. TimeAPN: Adaptive Amplitude-Phase Non-Stationarity Normalization for Time Series Forecasting. arXiv:2603.17436, 2026 preprint.
+[R9] Ansari et al. Chronos: Learning the Language of Time Series. arXiv:2403.07815.
+[R10] Das et al. A decoder-only foundation model for time-series forecasting / TimesFM. arXiv:2310.10688.
+[R11] Liu et al. Moirai-MoE: Empowering Time Series Foundation Models with Sparse Mixture of Experts. arXiv:2410.10469.
+[R12] Fan et al. Dish-TS: A General Paradigm for Alleviating Distribution Shift in Time Series Forecasting. AAAI 2023 / arXiv:2302.14829.
+[R13] Zhang and Xiao. NoRIN: Backbone-Adaptive Reversible Normalization for Time-Series Forecasting. arXiv:2605.10823, 2026 preprint.
+[R14] Berthelier et al. On the Role of Reversible Instance Normalization. arXiv:2603.11869, 2026 preprint.
+附录 A：最小实现检查清单
+所有 threshold 只来自 validation split；test split 只做最终评价。
+所有 action 都保存 delta，便于计算 alignment 和 correction energy。
+所有新模块必须与 matched smoothing 同触发率对比，避免“只是平滑”的伪贡献。
+所有 router/critic 必须与 shuffled-feature 对照，避免 validation label 偏置造成虚假可学习性。
+所有外部结果先称为 harm diagnostic，直到样本规模足够支撑泛化 claim。
+每个方向先做最小验证实验，再进入完整模型实现。

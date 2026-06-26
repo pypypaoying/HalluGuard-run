@@ -1,0 +1,2 @@
+status,train_rows,test_rows,n_actions,test_accuracy,majority_accuracy,shuffled_feature_accuracy,oracle_best_action_entropy_test,top_predicted_action_rate
+completed,768,768,5,0.4283854166666667,0.4114583333333333,0.40234375,1.4782960102062708,0.60546875

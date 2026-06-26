@@ -1,0 +1,2 @@
+status,train_rows,test_rows,auc_true_vs_raw_corrupted,auprc_true_vs_raw_corrupted,gradient_alignment_status,note
+completed,3072,3072,0.9381080910011574,0.8430678651300999,not_evaluated_feature_critic_only,A strong AUC supports critic separability; gradient refinement still needs differentiable energy validation.
