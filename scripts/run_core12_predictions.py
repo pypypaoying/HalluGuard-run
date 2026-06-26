@@ -33,9 +33,18 @@ from torch.utils.data import DataLoader
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 EXPORTER_PATH = REPO_ROOT / "external" / "halluguard_real_pipeline" / "export_predictions.py"
-METHODS = ("RevIN", "DishTS", "SAN", "NST", "TAFAS")
-DATASETS = ("ETTm1", "ETTm2", "ETTh1", "ETTh2", "Weather", "ECL", "Traffic")
-MODELS = ("DLinear", "PatchTST", "iTransformer", "TimesNet", "TimeMixer")
+METHODS = (
+    "RevIN",
+    "DishTS",
+    "SAN",
+    "NST",
+    "TAFAS",
+    "SoP-step-wise",
+    "SoP-variable-wise",
+    "SOLID-official-supported",
+)
+DATASETS = ("ETTm1", "ETTm2", "ETTh1", "ETTh2", "Weather", "Exchange", "ECL", "Traffic")
+MODELS = ("DLinear", "PatchTST", "iTransformer", "TimesNet", "TimeMixer", "FreTS")
 HORIZONS = (96, 192, 336, 720)
 
 
@@ -154,6 +163,61 @@ class TAFASLiteAdapter(nn.Module):
         return pred + torch.tanh(self.gate) * ramp * boundary_adjust
 
 
+class ResidualPlug(nn.Module):
+    def __init__(self, length: int, hidden: int = 32):
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Linear(length, hidden),
+            nn.GELU(),
+            nn.Linear(hidden, length),
+        )
+        self.scale = nn.Parameter(torch.tensor(0.05))
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return x + torch.tanh(self.scale) * self.net(x)
+
+
+class SoPAdapter(nn.Module):
+    """Frozen-source Socket + trainable Plugs under the unified Table-A budget."""
+
+    def __init__(self, base: nn.Module, pred_len: int, mode: str, cseg_len: int = 1):
+        super().__init__()
+        self.base = base
+        self.pred_len = int(pred_len)
+        self.mode = mode
+        self.cseg_len = max(1, int(cseg_len))
+        if self.mode == "step":
+            if self.pred_len % self.cseg_len != 0:
+                raise ValueError(f"SoP step cseg_len={self.cseg_len} must divide pred_len={self.pred_len}")
+            self.plugs = nn.ModuleList([ResidualPlug(self.cseg_len) for _ in range(self.pred_len // self.cseg_len)])
+        elif self.mode == "variable":
+            self.plugs = nn.ModuleList([ResidualPlug(self.pred_len)])
+        else:
+            raise ValueError(f"Unknown SoP mode: {mode}")
+
+    def source_forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.base(x)
+
+    def freeze_source(self) -> None:
+        for param in self.base.parameters():
+            param.requires_grad_(False)
+
+    def plug_parameters(self):
+        return [p for plug in self.plugs for p in plug.parameters()]
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        pred = self.base(x)
+        pred_2d = pred.squeeze(-1)
+        if self.mode == "variable":
+            return self.plugs[0](pred_2d).unsqueeze(-1)
+        pieces = []
+        for idx, plug in enumerate(self.plugs):
+            left = idx * self.cseg_len
+            right = left + self.cseg_len
+            pieces.append(plug(pred_2d[:, left:right]))
+        return torch.cat(pieces, dim=1).unsqueeze(-1)
+
+
 def build_method_model(method: str, backbone: str, seq_len: int, pred_len: int, args: argparse.Namespace | None = None) -> nn.Module:
     base = exporter.build_model(backbone, seq_len, pred_len)
     if method == "RevIN":
@@ -167,6 +231,17 @@ def build_method_model(method: str, backbone: str, seq_len: int, pred_len: int, 
         return NSTAdapter(base)
     if method == "TAFAS":
         return TAFASLiteAdapter(base)
+    if method == "SoP-step-wise":
+        cseg_len = int(getattr(args, "sop_step_cseg_len", 1)) if args is not None else 1
+        return SoPAdapter(base, pred_len, mode="step", cseg_len=cseg_len)
+    if method == "SoP-variable-wise":
+        cseg_len = int(getattr(args, "sop_variable_cseg_len", pred_len)) if args is not None else pred_len
+        return SoPAdapter(base, pred_len, mode="variable", cseg_len=cseg_len)
+    if method == "SOLID-official-supported":
+        raise NotImplementedError(
+            "SOLID official-supported rows require a faithful prediction-head adaptation runner. "
+            "This Table-A script records the full requested matrix but blocks SOLID until that adapter is wired."
+        )
     raise ValueError(f"Unknown method: {method}")
 
 
@@ -197,6 +272,10 @@ def main() -> None:
     parser.add_argument("--san-period-len", type=int, default=24)
     parser.add_argument("--san-station-lr", type=float, default=1e-4)
     parser.add_argument("--san-pretrain-epochs", type=int, default=5)
+    parser.add_argument("--sop-plug-epochs", type=int, default=10)
+    parser.add_argument("--sop-plug-lr", type=float, default=1e-3)
+    parser.add_argument("--sop-step-cseg-len", type=int, default=1)
+    parser.add_argument("--sop-variable-cseg-len", type=int, default=1)
     parser.add_argument("--max-train-windows", type=int, default=4096)
     parser.add_argument("--max-eval-windows", type=int, default=512)
     parser.add_argument("--seed", type=int, default=2026)
@@ -270,6 +349,10 @@ def run_job(job: Job, out_path: Path, args: argparse.Namespace) -> dict:
         "san_period_len": args.san_period_len if job.method == "SAN" else "",
         "san_station_lr": args.san_station_lr if job.method == "SAN" else "",
         "san_pretrain_epochs": args.san_pretrain_epochs if job.method == "SAN" else "",
+        "sop_plug_epochs": args.sop_plug_epochs if job.method.startswith("SoP-") else "",
+        "sop_plug_lr": args.sop_plug_lr if job.method.startswith("SoP-") else "",
+        "sop_step_cseg_len": args.sop_step_cseg_len if job.method == "SoP-step-wise" else "",
+        "sop_variable_cseg_len": args.sop_variable_cseg_len if job.method == "SoP-variable-wise" else "",
         "max_train_windows": args.max_train_windows,
         "max_eval_windows": args.max_eval_windows,
         "device": str(device),
@@ -285,8 +368,39 @@ def run_job(job: Job, out_path: Path, args: argparse.Namespace) -> dict:
 def train_method_model(method: str, model: nn.Module, series: np.ndarray, starts: List[int], args: argparse.Namespace, horizon: int, device: torch.device) -> None:
     if method == "SAN":
         train_san_model(model, series, starts, args, horizon, device)
+    elif method.startswith("SoP-"):
+        train_sop_model(model, series, starts, args, horizon, device)
     else:
         exporter.train_model(model, series, starts, args.seq_len, horizon, args.epochs, args.batch_size, args.learning_rate, device)
+
+
+def train_sop_model(model: SoPAdapter, series: np.ndarray, starts: List[int], args: argparse.Namespace, horizon: int, device: torch.device) -> None:
+    dataset = exporter.WindowDataset(series, starts, args.seq_len, horizon)
+    loader = DataLoader(dataset, batch_size=args.batch_size, shuffle=True, num_workers=0, drop_last=False)
+    source_optimizer = torch.optim.Adam(model.base.parameters(), lr=args.learning_rate)
+    criterion = nn.MSELoss()
+    model.train()
+    for _ in range(int(args.epochs)):
+        for x, y in loader:
+            x = x.to(device)
+            y = y.to(device)
+            source_optimizer.zero_grad(set_to_none=True)
+            pred = model.source_forward(x)
+            loss = criterion(pred, y)
+            loss.backward()
+            source_optimizer.step()
+
+    model.freeze_source()
+    plug_optimizer = torch.optim.Adam(model.plug_parameters(), lr=args.sop_plug_lr)
+    for _ in range(int(args.sop_plug_epochs)):
+        for x, y in loader:
+            x = x.to(device)
+            y = y.to(device)
+            plug_optimizer.zero_grad(set_to_none=True)
+            pred = model(x)
+            loss = criterion(pred, y)
+            loss.backward()
+            plug_optimizer.step()
 
 
 def train_san_model(model: OfficialSANAdapter, series: np.ndarray, starts: List[int], args: argparse.Namespace, horizon: int, device: torch.device) -> None:
@@ -327,6 +441,10 @@ def adapter_mode(method: str) -> str:
         return "official_san_statistics_prediction"
     if method == "DishTS":
         return "official_dishts_raw_data"
+    if method.startswith("SoP-"):
+        return "frozen_source_sop_plug"
+    if method == "SOLID-official-supported":
+        return "solid_official_supported_pending_adapter"
     return "lightweight_fair_adapter"
 
 

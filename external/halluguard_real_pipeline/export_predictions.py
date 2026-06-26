@@ -39,12 +39,14 @@ STANDARD_BORDERS = {
 }
 CUSTOM_DATASETS = {
     "Weather": ("weather", "weather.csv"),
+    "Exchange": ("exchange_rate", "exchange_rate.csv"),
+    "exchange_rate": ("exchange_rate", "exchange_rate.csv"),
     "ECL": ("electricity", "electricity.csv"),
     "Electricity": ("electricity", "electricity.csv"),
     "Traffic": ("traffic", "traffic.csv"),
 }
-SUPPORTED_DATASETS = tuple(STANDARD_BORDERS) + ("Weather", "ECL", "Traffic")
-SUPPORTED_MODELS = ("DLinear", "PatchTST", "iTransformer", "TimesNet", "TimeMixer")
+SUPPORTED_DATASETS = tuple(STANDARD_BORDERS) + ("Weather", "Exchange", "ECL", "Traffic")
+SUPPORTED_MODELS = ("DLinear", "PatchTST", "iTransformer", "TimesNet", "TimeMixer", "FreTS")
 DATA_LENGTHS: dict[str, int] = {}
 
 
@@ -287,7 +289,7 @@ def build_model(model_name: str, seq_len: int, pred_len: int) -> nn.Module:
         return TinyDLinear(seq_len, pred_len)
     if model_name == "PatchTST":
         return TinyPatchTST(seq_len, pred_len)
-    if model_name in {"iTransformer", "TimesNet", "TimeMixer"}:
+    if model_name in {"iTransformer", "TimesNet", "TimeMixer", "FreTS"}:
         return TSLibForecastWrapper(model_name, seq_len, pred_len)
     raise ValueError(model_name)
 

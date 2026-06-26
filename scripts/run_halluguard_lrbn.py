@@ -48,8 +48,8 @@ from torch.utils.data import DataLoader, Dataset
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 EXPORTER_PATH = REPO_ROOT / "external" / "halluguard_real_pipeline" / "export_predictions.py"
-DATASETS = ("ETTm1", "ETTm2", "ETTh1", "ETTh2", "Weather", "ECL", "Traffic")
-MODELS = ("DLinear", "PatchTST", "iTransformer", "TimesNet", "TimeMixer")
+DATASETS = ("ETTm1", "ETTm2", "ETTh1", "ETTh2", "Weather", "Exchange", "ECL", "Traffic")
+MODELS = ("DLinear", "PatchTST", "iTransformer", "TimesNet", "TimeMixer", "FreTS")
 HORIZONS = (96, 192, 336, 720)
 VARIANTS = (
     "fixed_level_only",
