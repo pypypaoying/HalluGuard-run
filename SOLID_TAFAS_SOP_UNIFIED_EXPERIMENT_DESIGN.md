@@ -52,6 +52,15 @@ so it belongs in Table A under the unified setting. Its official Exchange
 script can be kept only as a reproducibility sanity check, not as a separate
 scientific table.
 
+SOLID also belongs in Table A when run on the backbone families supported by
+its official code path. The public README only gives a PatchTST example and the
+released shell scripts are mostly PatchTST/DLinear, but the SOLID code contains
+model-specific prediction-head mappings for multiple backbones reported in the
+paper, including Informer/Autoformer/FEDformer/ETSformer/Crossformer/DLinear
+and PatchTST. Therefore SOLID should be treated as a strong Table-A baseline,
+with unsupported backbone rows explicitly marked as blocked rather than moved
+wholesale to an appendix.
+
 ## 2. Dataset Matrix
 
 ### Core datasets
@@ -162,6 +171,9 @@ pred_len = 96, 192, 336, 720
 
 This appendix should not be averaged into the primary `seq_len=96` table.
 
+This appendix is optional. It checks alignment with the public PatchTST scripts;
+it is not the only valid SOLID setting.
+
 ## 5. Backbone Matrix
 
 ### Tier 1: Core intersection backbones
@@ -213,18 +225,18 @@ SAN
 NST
 SoP-step-wise
 SoP-variable-wise
-SOLID-PatchTST-only
+SOLID-official-supported
 matched_sparse_smoothing
 naive_smoothing
 ema_smoothing
 median_smoothing
 ```
 
-SOLID is listed as a PatchTST-only strong baseline. Do not average SOLID across
-non-PatchTST backbones unless a faithful official-compatible adapter is
-implemented for those models. For non-PatchTST rows, use
-`status=not_applicable` or omit SOLID from that backbone-specific mean rather
-than pretending it is a model-agnostic competitor.
+SOLID is listed as an official-supported strong baseline. It can run in Table A
+on every backbone where the official code has a known prediction-head adapter
+and the baseline forecaster can be trained under the same split/budget. If a
+backbone is not supported by SOLID's official code path, mark that row as
+`blocked: missing_solid_head_adapter` rather than silently omitting it.
 
 ### Online / partially observed methods
 
@@ -244,7 +256,7 @@ Only after single-method baselines are stable:
 
 ```text
 HalluGuard-LRBN + SoP
-HalluGuard-LRBN + SOLID, PatchTST only
+HalluGuard-LRBN + SOLID, official-supported backbones
 HalluGuard-LRBN + TAFAS-online
 ```
 
@@ -301,14 +313,20 @@ Report both:
 Unified table variant:
 
 ```text
-SOLID-PatchTST-only
+SOLID-official-supported
 ```
 
 Settings:
 
-- Run only where the source forecaster is PatchTST, unless a faithful
-  official-compatible implementation for another backbone is added later.
-- Train PatchTST source forecaster on train split.
+- Run on each backbone where SOLID has a faithful prediction-head adaptation
+  mapping. The official code path includes mappings for:
+  - `Informer`, `Autoformer`, `FEDformer`: default decoder projection
+  - `ETSformer`: `decoder.pred`
+  - `Crossformer`: final decoder `linear_pred`
+  - `DLinear`/`Linear`: linear head
+  - `PatchTST`: `model.head.linear`
+- Train the source forecaster on train split using the same dataset, horizon,
+  seed, and source-model training budget as the corresponding raw baseline.
 - Build residual/context library from train + val windows only.
 - Use validation split to choose:
   - `selected_data_num`
@@ -337,11 +355,15 @@ adapted_lr_multiplier = 10
 
 Interpretation:
 
-- SOLID is a strong PatchTST-specific adaptation baseline.
+- SOLID is a strong test-time adaptation baseline, not merely a PatchTST-only
+  comparator.
 - It should compete directly against `raw_no_correction`, `HalluGuard-LRBN`,
-  SoP, RevIN/Dish-TS/SAN/NST, and smoothing on PatchTST rows.
-- It should not be used to claim all-backbone average superiority unless the
-  non-PatchTST rows are explicitly supported.
+  SoP, RevIN/Dish-TS/SAN/NST, and smoothing on all officially supported
+  backbones.
+- If we generate missing shell scripts for official-supported backbones, that is
+  a protocol-adapter change, not an algorithm change. It does not by itself
+  harm fairness as long as the source forecaster budget and validation-only
+  hyperparameter selection remain shared.
 
 ### TAFAS
 
@@ -454,6 +476,7 @@ base_forecaster_epochs = same as raw/LRBN source
 SoP_plug_max_epochs = 10 broad table, 20 confirmation table
 SoP_plug_patience = none if fixed-budget; 5 only if all methods use early stopping
 SOLID_adaptation_steps = validation-selected from the declared grid
+SOLID_source_checkpoint = same raw source checkpoint whenever possible
 ```
 
 If server limits require caps, use the same caps for every method and report
@@ -567,8 +590,22 @@ models = DLinear, PatchTST, iTransformer
 horizons = 96, 192, 336, 720
 seeds = 2026, 2027, 2028
 methods = raw, HalluGuard-LRBN, RevIN, Dish-TS, SAN, NST-compatible,
-          SoP-step, SoP-variable, smoothing controls
-extra PatchTST-only baseline = SOLID-PatchTST-only
+          SoP-step, SoP-variable, SOLID-official-supported, smoothing controls
+```
+
+For the exact SOLID paper-backbone set, add:
+
+```text
+SOLID paper-backbone slice =
+Informer, Autoformer, FEDformer, ETSformer, Crossformer, DLinear, PatchTST
+```
+
+For the HalluGuard-run modern-backbone slice, run SOLID where adapters exist
+and record blockers where they do not:
+
+```text
+HalluGuard modern slice =
+DLinear, PatchTST, iTransformer, TimesNet, TimeMixer, FreTS
 ```
 
 ### Expanded generalization table
@@ -616,8 +653,8 @@ Do not claim:
 - HalluGuard-LRBN beats TAFAS if TAFAS is using partial ground truth and LRBN is
   not.
 - HalluGuard-LRBN beats SoP unless both use the same backbone and split.
-- HalluGuard-LRBN beats SOLID globally unless the comparison is restricted to
-  PatchTST rows or SOLID is faithfully implemented for the other backbones.
+- HalluGuard-LRBN beats SOLID globally unless SOLID rows are implemented for the
+  same backbone set or the claim is restricted to the shared supported subset.
 - NST results on non-attention backbones are official NST unless the attention
   mechanism is actually implemented.
 - A capped-window broad table is identical to an official full-data leaderboard.
