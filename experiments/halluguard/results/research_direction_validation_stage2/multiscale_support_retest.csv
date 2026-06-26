@@ -1,0 +1,8 @@
+split,score,target_energy,spearman,q,strength,rows,mean_mse,raw_mean_mse,mean_mse_delta,mean_mse_delta_pct,harm_rate,win_rate_vs_raw,alignment_A_gt_1_rate,mean_cosine
+test,energy_support,high_residual_energy,0.07273521256159785,,,,,,,,,,,
+test,phase_support,mid_residual_energy,0.018618880772113027,,,,,,,,,,,
+test,local_band_boundary,high_residual_energy,0.05094073243159389,,,,,,,,,,,
+val,energy_support,high_residual_energy,-0.3210619781753347,,,,,,,,,,,
+val,phase_support,mid_residual_energy,0.024067999638980674,,,,,,,,,,,
+val,local_band_boundary,high_residual_energy,0.0506533051017,,,,,,,,,,,
+test,adaptive_scale_shrink,,,0.5,0.75,768.0,6.168001514972569,6.4272205541616385,-0.25921903918907085,-4.033143667645132,0.0,0.6588541666666666,0.6588541666666666,0.2220311786660896

@@ -1,0 +1,421 @@
+HalluGuard 后续创新方向复盘与二次验证实验文档
+版本：2026-06-26
+输入依据：RESEARCH_DIRECTIONS_VALIDATION_REPORT.md 与 direction_verdicts.csv
+目标：基于 pilot 结果判断哪些创新方向仍可成立、哪些应降级或暂停，并给出下一轮实验设计。
+1. 总体判断
+这轮实验的价值不是证明最终性能，而是完成了第一轮 go / no-go 筛选。结论应当分成三层：
+1. 可进入扩展性能验证的主方法方向：E5 动态一致性边界投影。它已经有明确 test 改善，机制也最干净。下一步可以进入“扩展大表前置验证”，但仍需要覆盖更多数据集、backbone、horizon 和 seed，不能直接作为论文最终大表结论。
+2. 有潜力但必须二次证伪的方向：E7 critic scorer、E4 residual basis、E6 multiscale editing、E9 regime-invariant correction。这些方向都有正信号，但当前证据只支持“可继续研究”，不支持“直接作为主方法上大表”。
+3. 当前不应继续投入为主线的方向：E2 oracle action separability、E3 no-harm selective correction using current features、E8 TSFM disagreement。E2/E3 的当前特征几乎不能完成选择或避害；E8 因没有真实 TSFM forecast 文件，不能做任何 claim。
+最重要的策略调整是：不要把所有 promising 方向都塞进最终大表。下一阶段应该把 E5 做成一个简洁、可解释、容易复现的候选方法；把 E7 作为 E5 的 selector 辅助验证；把 E4/E6/E9 放入机制附录或下一代方案池。
+2. 创新方向状态复盘
+编号
+方向
+当前证据
+结论
+下一步
+E1
+Residual alignment
+LRBN test delta -1.5331，A>1 rate 0.642
+理论命题成立，可作为论文分析支撑
+不作为新方法单独上大表；作为 alignment analysis 保留
+E2
+Oracle action separability
+accuracy 0.428，majority 0.411，shuffled 0.402
+当前 action router 证据很弱
+暂停，不做主线
+E3
+No-harm selective correction
+risk AUC 0.434，50% coverage harm 0.424 > full 0.358
+当前 feature-based no-harm claim 不成立
+暂停；只有引入 critic/regime/basis 新特征后才可复活
+E4
+Residual basis decomposition
+top10 PCA EVR 0.914，test recon EVR 0.940，但 weight R2 -0.882
+residual 低维上界成立，但可预测性未成立
+二次验证：从 full weight regression 改为 sign / bucket prediction
+E5
+Dynamic consistency projection
+boundary_projection delta -0.224956，约 -3.50%，A>1 0.661
+最稳的下一代方法原型
+进入扩展性能验证 + 机制验证
+E6
+Multiscale amplitude-phase support
+edit delta -0.315904，但 hf mismatch Spearman 0.085
+编辑有效，机制证据弱
+二次验证：重新设计 scale support score；否则降级为 smoothing baseline
+E7
+Energy / critic separability
+critic AUC 0.938，AUPRC 0.843，但未验证 gradient alignment
+可以作为 scorer，不能直接做 diffusion/refinement claim
+二次验证：critic-selected projection 与 gradient alignment
+E8
+TSFM disagreement
+无 Chronos/TimesFM/Moirai forecast
+blocked
+暂停；先准备真实 TSFM forecast adapter
+E9
+Regime-invariant correction
+top-action rate 0.513，cross-domain consistency 0.667
+有 regime 结构，但不够干净
+二次验证：机制标签 + cross-domain stability
+3. 哪些方向“站得住”，哪些“不行”
+3.1 站得住：E1 residual alignment，但它是理论支撑，不是新方法
+E1 的意义是证明 HalluGuard 不是纯 smoothing trick，而是在相当一部分样本上产生了与真实 residual 同向的 correction。它应该放在论文或报告中的机制分析部分：
+Delta L = |delta-e|^2 - |e|^2 = |delta|^2 - 2delta^top e.
+当 (2delta^top e > |delta|^2) 时，修正会降低 MSE。A>1 rate 达到 0.642，说明“修正方向对齐”不是偶然噪声。
+但是，E1 不能直接变成方法创新。它更适合作为下面两个主张的证据：
+HalluGuard 的收益来自 residual-aligned correction；
+后续方法应继续围绕“如何稳定地产生 aligned correction”展开。
+3.2 最稳主线：E5 dynamic boundary projection
+E5 是目前唯一同时满足三个条件的方向：
+有 test MSE 改善；
+方法结构简单；
+机制解释清楚。
+boundary_projection 比 slope / curvature 更强，说明当前 forecast error 更像边界 level mismatch，而不是普遍的斜率或曲率不一致。下一代主方法可以暂定为：
+HalluGuard-BP: Boundary-consistency projection for model-agnostic forecast correction
+主张不要过大。不要说它修正全部非平稳性，而是说它修正 raw forecast 与 recent context 之间的 locally unsupported boundary displacement。
+3.3 有潜力但未成立：E7 critic scorer
+critic AUC 很高，说明 true future 与 raw/corrupted trajectories 在当前特征空间中可分。但这只能证明“能分辨像不像真实未来”，不能证明“critic 能指导修正”。
+要让 E7 成立，必须验证至少一个命题：
+critic score improvement (S(x,z_{proj})-S(x,hat y)) 能预测 projection 是否降低 MSE；
+critic gradient direction 与真实 residual 对齐；
+critic 选择出的样本子集，比全量 boundary projection 有更低 harm 或更高 gain。
+在这些验证前，E7 只能作为 scorer / selector，不应声称 energy refinement 或 diffusion refinement 成立。
+3.4 有上界但未闭环：E4 residual basis
+残差 top10 PCA EVR 高，说明 residual 不是白噪声，有低维结构；但 weight R2 为负，说明当前 target-free 特征无法预测 residual basis 权重。这里的正确处理不是直接训练 full residual MLP，而是降低任务难度：
+预测 top-k residual mode 的符号；
+预测 residual energy bucket；
+只预测 boundary / trend / HF 几个 coarse component；
+使用 validation 中每个 bucket 的平均幅度来重构 correction。
+如果连 sign prediction 都不稳定，这条线就不应继续作为主线。
+3.5 有效果但机制弱：E6 multiscale editing
+unsupported-HF shrink 能降 MSE，但 high-frequency mismatch 与 high-frequency residual 的 Spearman 只有 0.085。这说明当前机制解释站不稳：它可能只是一个有效 smoothing/editing baseline，而不是成熟的 amplitude-phase support calibrator。
+E6 可以保留，但必须改写为：
+当前只证明 scale-wise editing 有经验收益；
+尚未证明 high-frequency support score 是正确因果机制；
+下一步要重新设计 scale support score，或者降级为强 baseline。
+3.6 早期诊断：E9 regime-invariant correction
+top-action rate 0.513、cross-domain consistency 0.667 说明存在一定 regime structure，但当前 KMeans 聚类还不足以支持“regime-invariant method”。它适合做诊断和解释，不适合作为 router 主体。
+下一步若要继续，需要把无监督 KMeans 改成机制标签或弱监督 regime：boundary-mismatch、stable-raw、HF-unsupported、residual-low-energy、projection-harm 等。
+3.7 当前不行：E2 / E3 / E8
+E2 的 oracle action separability 只比 majority 和 shuffled 略好，不足以说明 action 选择可学。E3 的 harm classifier AUC 低于随机，且低 coverage 反而更高 harm，说明当前特征做 no-harm router 是反方向的。E8 没有真实 TSFM forecast，不能进行任何结论性分析。
+4. 是否可以直接上大表
+4.1 不建议直接上最终大表
+原因有三点：
+1. 当前实验只覆盖 ETTm1/ETTh1、DLinear/PatchTST、96/192、single seed；这是方向筛选，不是论文级 evidence。
+2. 最强的 LRBN 虽然 delta 大，但 harm rate 为 0.358，不能直接包装成 no-harm correction。
+3. E7/E4/E6/E9 的 mechanism claim 还没闭环，直接上大表容易得到“性能有了，但故事不稳”的结果。
+4.2 可以让 E5 进入“扩展性能验证”
+E5 不需要再做很复杂的机制预实验，可以直接进入扩展表，但这个表应被定义为：
+扩展性能验证表，而不是最终论文大表。
+它的目标是回答：boundary projection 的小幅收益是否跨数据集、backbone、horizon、seed 稳定存在。
+如果 E5 在扩展表中稳定，则它可以成为论文主方法或主方法组件。如果只在少数 ETT 配置上有效，则它只能作为 stress repair 或 ETT-specific finding。
+4.3 E7/E4/E6/E9 必须先做二次证伪
+E7：必须验证 critic score / gradient 是否能指导 projection。
+E4：必须验证 basis sign / bucket 是否可预测。
+E6：必须验证 scale support score 是否与 scale residual 有关系。
+E9：必须验证 regime 是否跨 domain 保持 correction law 一致。
+5. 下一阶段实验设计
+Experiment A：Boundary Projection 扩展性能与机制验证
+A.1 目标
+验证 E5 是否能从 pilot 中的一个正信号，升级为稳定、可复现、可写成方法的主线。
+A.2 方法候选
+raw_no_correction
+HalluGuard-LRBN
+HalluGuard-BP-global：全局 alpha，只用 validation 统一选择
+HalluGuard-BP-domain：每个 dataset/backbone/horizon 在 validation 上选择 alpha
+ema_smoothing
+median_smoothing
+naive_smoothing
+matched_sparse_smoothing
+建议主推 HalluGuard-BP-global。如果只有 BP-domain 有效，说明方法依赖校准配置，model-agnostic claim 会变弱。
+A.3 数据与配置
+优先扩展到：
+Dataset: ETTm1, ETTh1, ETTm2, ETTh2, Weather, Electricity, Exchange；Traffic 可作为重型可选项。
+Backbone: DLinear, PatchTST, NLinear, iTransformer；若资源允许加 TimesNet / FEDformer。
+Horizon: 96, 192, 336, 720。
+Seed: 至少 3 个，建议 2024, 2025, 2026。
+A.4 指标
+主指标：
+MSE / MAE
+relative MSE delta vs raw
+win rate vs raw
+win rate vs LRBN
+harm rate: (Delta MSE > 0)
+mean positive harm magnitude
+paired bootstrap p-value 或 paired t-test
+机制指标：
+A>1 rate
+mean cosine between (delta) and residual
+boundary gap before / after
+correction norm ratio (|delta|/|hat y|)
+gain by boundary-gap quantile
+A.5 Go / no-go 标准
+进入最终论文大表的最低标准：
+across-config mean MSE delta < -0.5%；
+win rate vs raw > 60%；
+harm rate 不高于 LRBN，最好低于 LRBN；
+A>1 rate > 0.55；
+在 boundary-gap 高分位组中收益显著大于低分位组。
+若整体平均收益小但 high boundary-gap 子集收益强，则将方法定位为 selective boundary repair，而不是 universal correction。
+Experiment B：Critic-Assisted Boundary Projection
+B.1 目标
+验证 E7 是否可以从“trajectory scorer”升级为“projection selector”。不要直接做 gradient refiner，先验证 critic 能否判断 boundary projection 是否值得执行。
+B.2 核心思想
+给定 raw forecast (hat y) 与 boundary projection (z_{bp})，critic 输出 score：
+S_{raw}=S(x,hat y), quad S_{bp}=S(x,z_{bp}).
+执行规则：
+tilde y =
+begin{cases}
+z_{bp}, & S_{bp}-S_{raw} > tau 
+hat y, & otherwise
+end{cases}
+阈值 (tau) 只能用 validation 选择。
+B.3 关键验证
+(S_{bp}-S_{raw}) 与真实 (Delta MSE_{bp}) 的 Spearman correlation；
+critic-selected 子集的 mean delta 和 harm rate；
+selected coverage vs improvement curve；
+selected coverage vs harm curve；
+critic selection 是否优于 random selection、boundary-gap selection、stable-score selection。
+B.4 Gradient alignment 可选验证
+训练 differentiable critic 后，在 test 上计算：
+g=nabla_z S(x,z)|_{z=hat y}
+然后检查：
+A_g = frac{2epsilon g^top e}{|epsilon g|^2}, quad cosine(g,e).
+如果 gradient alignment 不成立，不要做 energy-gradient refinement；继续只把 critic 当 scorer。
+B.5 Go / no-go 标准
+E7 进入主方法的标准：
+score delta 与 MSE improvement Spearman > 0.20；
+critic-selected BP 在同 coverage 下优于 random 和 boundary-gap selector；
+selected harm rate 低于 full BP；
+若要声称 energy refinement，gradient A>1 rate > 0.55。
+Experiment C：Residual Basis Sign / Bucket Predictability
+C.1 目标
+验证 E4 中“低维 residual basis”是否能被 target-free features 预测。如果不能，residual basis 只能作为 oracle upper bound，不能做方法。
+C.2 从 full regression 降级
+不要直接预测连续 basis weight：
+w_k = langle e, b_k rangle.
+改成：
+sign prediction: (sign(w_k))；
+energy bucket prediction: low / medium / high；
+top-k active mode prediction；
+coarse component prediction: boundary / trend / HF。
+C.3 特征建议
+只允许 target-free features：
+context tail statistics；
+raw forecast boundary gap；
+forecast roughness / curvature；
+frequency energy ratio；
+BP correction norm；
+critic scores；
+regime label；
+backbone/dataset/horizon metadata 可做 ablation，主 claim 最好不用或弱用。
+C.4 Correction 构造
+不要让模型直接输出 full residual。建议：
+hat e = sum_{k=1}^K hat s_k cdot m_k cdot b_k
+其中 (hat s_k in {-1,0,1})，(m_k) 是 validation 中该 bucket 的 median magnitude。
+C.5 Go / no-go 标准
+top-1 / top-3 mode sign AUC > 0.60；
+sign accuracy 显著高于 majority；
+basis-lite correction 在 test 上优于 raw，并至少接近 BP；
+若不能超过 BP，不作为主方法，只放机制上界分析。
+Experiment D：Multiscale Support 机制重验
+D.1 目标
+判断 E6 的收益是否来自真正的 scale-wise support，而不是普通 smoothing。
+D.2 重新设计 scale support
+当前 highfreq mismatch Spearman 太低。建议比较三类 support score：
+1. Energy support: forecast 某尺度能量是否超过 context tail 的置信上界；
+2. Phase support: dominant frequency 的 phase continuity 是否在边界附近断裂；
+3. Local-band residual proxy: forecast-context 在 bandpass 后的 boundary mismatch。
+D.3 实验指标
+scale-wise mismatch 与 scale-wise residual norm 的 Spearman；
+每个尺度上的 oracle shrinkage gain；
+adaptive scale shrink vs fixed HF shrink；
+adaptive scale shrink vs EMA/median smoothing；
+真实高频数据集上是否误伤。
+D.4 Go / no-go 标准
+至少一个 support score 的 Spearman > 0.20；
+adaptive scale shrink 明显优于 fixed HF shrink；
+在 high-frequency-rich 数据集上 harm 不显著升高。
+若不满足，则 E6 只保留为 smoothing/control baseline，不写 amplitude-phase 机制 claim。
+Experiment E：Regime-Invariant Correction 机制验证
+E.1 目标
+把 E9 从 KMeans 诊断升级为机制型 regime 验证。
+E.2 Regime 标签设计
+建议不用纯 KMeans，而是构造弱监督机制标签：
+R0 stable raw: raw 已经稳定，任何 correction 容易 harm；
+R1 boundary mismatch: boundary gap 高，BP oracle gain 高；
+R2 HF unsupported: HF shrink oracle gain 高；
+R3 residual low-energy: 所有 correction gain 都小；
+R4 large residual but unaligned: 当前方法都修不好。
+这些标签只在 validation/test 分析阶段用真实 y 生成；训练可用 target-free proxy 模拟。
+E.3 Cross-domain 验证
+训练 regime predictor 时做 leave-one-domain-out：
+train on ETTm1 + ETTh1 + Weather，test on Electricity；
+train on DLinear，test on PatchTST；
+train on horizon 96/192，test on 336/720。
+E.4 Go / no-go 标准
+top-action purity > 0.65；
+cross-domain consistency > 0.75；
+每个 regime 的最优 correction law 稳定；
+regime-assisted selector 优于 global BP 或至少降低 harm。
+若不满足，E9 只做 error taxonomy，不做方法。
+6. 推荐执行顺序
+阶段 1：立刻做 E5 扩展验证
+这是最短路径。目标是确认 HalluGuard-BP 是否真的值得成为下一代主方法。
+优先输出：
+bp_extended_table.csv
+bp_alignment_analysis.csv
+bp_boundary_gap_quantile.csv
+bp_ablation_alpha_global_vs_domain.csv
+阶段 2：做 E7 critic-selected BP
+如果 BP 本身稳定，再看 critic 是否能降低 harm 或提升 coverage-gain tradeoff。
+优先输出：
+critic_score_delta_vs_gain.csv
+critic_selected_risk_coverage.csv
+critic_vs_boundarygap_selector.csv
+critic_gradient_alignment.csv
+阶段 3：低成本验证 E4/E6/E9
+这三个方向暂时不要完整上大表，只做二次证伪：
+E4：sign/bucket prediction；
+E6：support score 与 scale residual correlation；
+E9：mechanism regime stability。
+阶段 4：决定最终论文主线
+如果 E5 稳定，最终主线可写成：
+HalluGuard-BP: a model-agnostic, validation-calibrated boundary-consistency projection for forecast correction.
+如果 E7 也通过，升级为：
+HalluGuard-CAP: critic-assisted projection that corrects only when the projected trajectory is more plausible.
+如果 E7 不通过，保持 BP 简洁主线，不强行引入 critic。
+7. 大表进入条件
+方法候选
+现在是否直接进最终大表
+前置条件
+HalluGuard-BP
+可进扩展验证表，不建议直接最终大表
+跨数据/模型/horizon/seed 稳定
+HalluGuard-CAP
+否
+critic-selected BP 优于 full BP 或显著降 harm
+Residual-Basis-Lite
+否
+sign/bucket prediction 通过
+Multiscale-Adaptive
+否
+support score 与 scale residual 有相关，且 adaptive > fixed
+Regime-Guard
+否
+cross-domain regime stability 通过
+No-harm Router 当前版
+否
+当前证据不支持
+TSFM Critic
+否
+需要真实 TSFM forecast 文件
+8. 最小核心代码草图
+下面代码不是完整实现，只展示方法核心，方便后续用 Codex 补全。
+8.1 Boundary projection
+import torch
+ 
+ 
+def boundary_projection(context: torch.Tensor,
+                        forecast: torch.Tensor,
+                        alpha: float = 0.75,
+                        decay: str = "linear") -> torch.Tensor:
+    """Boundary-consistency projection.
+ 
+    Args:
+        context:  Tensor [B, L, C], recent context.
+        forecast: Tensor [B, H, C], raw forecast.
+        alpha:    projection strength calibrated on validation.
+        decay:    "linear", "exp", or "constant".
+ 
+    Returns:
+        corrected forecast [B, H, C].
+    """
+    if context.ndim != 3 or forecast.ndim != 3:
+        raise ValueError("context and forecast must be [B, T, C]")
+    if context.shape[0] != forecast.shape[0] or context.shape[2] != forecast.shape[2]:
+        raise ValueError("batch/channel dimensions must match")
+ 
+    B, H, C = forecast.shape
+    last = context[:, -1:, :]       # [B, 1, C]
+    first = forecast[:, :1, :]      # [B, 1, C]
+    gap = last - first              # desired boundary shift at horizon start
+ 
+    if decay == "linear":
+        w = torch.linspace(1.0, 0.0, H, device=forecast.device, dtype=forecast.dtype)
+    elif decay == "exp":
+        t = torch.linspace(0.0, 1.0, H, device=forecast.device, dtype=forecast.dtype)
+        w = torch.exp(-4.0 * t)
+    elif decay == "constant":
+        w = torch.ones(H, device=forecast.device, dtype=forecast.dtype)
+    else:
+        raise ValueError(f"unknown decay={decay}")
+ 
+    delta = alpha * w.view(1, H, 1) * gap
+    return forecast + delta
+8.2 Validation-only alpha calibration
+@torch.no_grad()
+def calibrate_alpha(val_batches, alphas=(0.0, 0.25, 0.5, 0.75, 1.0), decay="linear"):
+    """Choose alpha only on validation set. No test leakage."""
+    best_alpha, best_mse = None, float("inf")
+    for alpha in alphas:
+        total, count = 0.0, 0
+        for context, raw_forecast, target in val_batches:
+            pred = boundary_projection(context, raw_forecast, alpha=alpha, decay=decay)
+            mse = torch.mean((pred - target) ** 2).item()
+            total += mse * context.shape[0]
+            count += context.shape[0]
+        mean_mse = total / max(count, 1)
+        if mean_mse < best_mse:
+            best_mse = mean_mse
+            best_alpha = alpha
+    return best_alpha, best_mse
+8.3 Critic-assisted projection selector
+@torch.no_grad()
+def critic_assisted_projection(context, raw_forecast, critic, alpha=0.75, tau=0.0):
+    """Use critic as scorer/selector, not as gradient refiner.
+ 
+    critic(context, z) should return higher score for more plausible trajectory.
+    tau is calibrated on validation.
+    """
+    projected = boundary_projection(context, raw_forecast, alpha=alpha)
+    s_raw = critic(context, raw_forecast).view(-1)
+    s_proj = critic(context, projected).view(-1)
+    accept = (s_proj - s_raw) > tau
+    while accept.ndim < raw_forecast.ndim:
+        accept = accept.unsqueeze(-1)
+    return torch.where(accept, projected, raw_forecast)
+8.4 Alignment diagnostics
+@torch.no_grad()
+def correction_alignment(raw_forecast, corrected_forecast, target, eps=1e-12):
+    """Compute per-sample alignment diagnostics.
+ 
+    A > 1 implies this correction lowers MSE for that sample.
+    """
+    delta = corrected_forecast - raw_forecast
+    residual = target - raw_forecast
+ 
+    flat_d = delta.flatten(start_dim=1)
+    flat_e = residual.flatten(start_dim=1)
+ 
+    dot = torch.sum(flat_d * flat_e, dim=1)
+    norm_d2 = torch.sum(flat_d * flat_d, dim=1).clamp_min(eps)
+    norm_e = torch.linalg.norm(flat_e, dim=1).clamp_min(eps)
+    norm_d = torch.linalg.norm(flat_d, dim=1).clamp_min(eps)
+ 
+    A = 2.0 * dot / norm_d2
+    cosine = dot / (norm_d * norm_e)
+    mse_delta = torch.mean((corrected_forecast - target) ** 2, dim=(1, 2)) - \
+                torch.mean((raw_forecast - target) ** 2, dim=(1, 2))
+    return {"A": A, "cosine": cosine, "mse_delta": mse_delta}
+9. 最终建议
+当前最合理路线是：
+1. 把 E5 HalluGuard-BP 做成下一代核心方法原型；
+2. 用 E1 alignment 作为理论与机制分析；
+3. 用 E7 做 selector 的二次证伪，而不是直接做 energy refinement；
+4. E4/E6/E9 做低成本二次验证，不通过就降级为附录分析；
+5. 暂停 E2/E3 当前版，不要继续在现有特征上做 router / no-harm claim；
+6. TSFM 等真实 foundation forecast 文件准备好之后再重新启动 E8。
+一句话版本：下一步不是把所有方向都上最终大表，而是让 E5 先上扩展验证表；E7/E4/E6/E9 继续二次证伪；E2/E3/E8 暂停。

@@ -1,0 +1,2 @@
+selector,rows,mean_mse,raw_mean_mse,mean_mse_delta,mean_mse_delta_pct,harm_rate,win_rate_vs_raw,alignment_A_gt_1_rate,mean_cosine
+regime_assisted_selector,768,5.196945327331957,6.427220552929413,-1.2302752255974458,-19.141636941687718,0.36328125,0.6236979166666666,0.6236979166666666,0.3975797556886906
