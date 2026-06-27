@@ -1,0 +1,77 @@
+{
+  "LRBN": {
+    "ci95_low_mse_delta": 0.0,
+    "ci95_high_mse_delta": 0.0,
+    "p_bootstrap_delta_lt_zero": 0.0
+  },
+  "TAE-oracle-best": {
+    "ci95_low_mse_delta": -0.9871010990575995,
+    "ci95_high_mse_delta": -0.8032505349126827,
+    "p_bootstrap_delta_lt_zero": 1.0
+  },
+  "sra_safe": {
+    "ci95_low_mse_delta": -0.10428529361638128,
+    "ci95_high_mse_delta": -0.05819955040863004,
+    "p_bootstrap_delta_lt_zero": 1.0
+  },
+  "sra_balanced": {
+    "ci95_low_mse_delta": -0.15384714945596734,
+    "ci95_high_mse_delta": -0.09920247122496113,
+    "p_bootstrap_delta_lt_zero": 1.0
+  },
+  "sra_basic_ablation": {
+    "ci95_low_mse_delta": -0.23515621296466532,
+    "ci95_high_mse_delta": -0.11018210072994444,
+    "p_bootstrap_delta_lt_zero": 1.0
+  },
+  "mrc_ridge_abstain": {
+    "ci95_low_mse_delta": -0.0878756740161868,
+    "ci95_high_mse_delta": -0.03199010580917086,
+    "p_bootstrap_delta_lt_zero": 1.0
+  },
+  "mrc_ridge_residual_blend": {
+    "ci95_low_mse_delta": -0.1917558401123771,
+    "ci95_high_mse_delta": -0.026202810123648293,
+    "p_bootstrap_delta_lt_zero": 0.9965
+  },
+  "SafeTAE-pairwise-hard": {
+    "ci95_low_mse_delta": -0.12091685364591834,
+    "ci95_high_mse_delta": -0.07411072384816021,
+    "p_bootstrap_delta_lt_zero": 1.0
+  },
+  "SafeTAE-pairwise-blend": {
+    "ci95_low_mse_delta": -0.07517726034973202,
+    "ci95_high_mse_delta": -0.0494373954914725,
+    "p_bootstrap_delta_lt_zero": 1.0
+  },
+  "SafeTAE-tiered-blend": {
+    "ci95_low_mse_delta": -0.11007469290772744,
+    "ci95_high_mse_delta": -0.07078991342021564,
+    "p_bootstrap_delta_lt_zero": 1.0
+  },
+  "SafeTAE-mrc-consistency": {
+    "ci95_low_mse_delta": -0.11076794598212655,
+    "ci95_high_mse_delta": -0.06780276954675023,
+    "p_bootstrap_delta_lt_zero": 1.0
+  },
+  "SafeTAE-safe": {
+    "ci95_low_mse_delta": -0.11076794598212655,
+    "ci95_high_mse_delta": -0.06780276954675023,
+    "p_bootstrap_delta_lt_zero": 1.0
+  },
+  "SafeTAE-balanced": {
+    "ci95_low_mse_delta": -0.11076794598212655,
+    "ci95_high_mse_delta": -0.06780276954675023,
+    "p_bootstrap_delta_lt_zero": 1.0
+  },
+  "TAE-router-stage6": {
+    "ci95_low_mse_delta": NaN,
+    "ci95_high_mse_delta": NaN,
+    "p_bootstrap_delta_lt_zero": NaN
+  },
+  "TAE-ranker-stage6": {
+    "ci95_low_mse_delta": NaN,
+    "ci95_high_mse_delta": NaN,
+    "p_bootstrap_delta_lt_zero": NaN
+  }
+}

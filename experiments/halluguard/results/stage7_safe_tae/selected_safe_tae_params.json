@@ -1,0 +1,90 @@
+{
+  "SafeTAE-pairwise-hard": {
+    "variant": "SafeTAE-pairwise-hard",
+    "tau_leave": 0.3,
+    "tau_gain": 0.5,
+    "tau_harm": 0.2,
+    "risk_beta": 1.0,
+    "lambda_safe": 1.0,
+    "lambda_balanced": 1.0,
+    "lambda_aggressive": 0.0,
+    "cos_min": null,
+    "hard_replacement": true,
+    "allow_aggressive": false
+  },
+  "SafeTAE-pairwise-blend": {
+    "variant": "SafeTAE-pairwise-blend",
+    "tau_leave": 0.3,
+    "tau_gain": 0.5,
+    "tau_harm": 0.2,
+    "risk_beta": 1.0,
+    "lambda_safe": 0.5,
+    "lambda_balanced": 0.5,
+    "lambda_aggressive": 0.0,
+    "cos_min": null,
+    "hard_replacement": false,
+    "allow_aggressive": false
+  },
+  "SafeTAE-tiered-blend": {
+    "variant": "SafeTAE-tiered-blend",
+    "tau_leave": 0.3,
+    "tau_gain": 0.5,
+    "tau_harm": 0.2,
+    "risk_beta": 1.0,
+    "lambda_safe": 1.0,
+    "lambda_balanced": 0.75,
+    "lambda_aggressive": 0.05,
+    "cos_min": null,
+    "hard_replacement": false,
+    "allow_aggressive": false
+  },
+  "SafeTAE-mrc-consistency": {
+    "variant": "SafeTAE-mrc-consistency",
+    "tau_leave": 0.3,
+    "tau_gain": 0.5,
+    "tau_harm": 0.2,
+    "risk_beta": 1.0,
+    "lambda_safe": 1.0,
+    "lambda_balanced": 0.75,
+    "lambda_aggressive": 0.05,
+    "cos_min": 0.0,
+    "hard_replacement": false,
+    "allow_aggressive": false
+  },
+  "SafeTAE-safe": {
+    "variant": "SafeTAE-safe",
+    "tau_leave": 0.3,
+    "tau_gain": 0.5,
+    "tau_harm": 0.2,
+    "risk_beta": 1.0,
+    "lambda_safe": 1.0,
+    "lambda_balanced": 0.75,
+    "lambda_aggressive": 0.05,
+    "cos_min": 0.0,
+    "hard_replacement": false,
+    "allow_aggressive": false
+  },
+  "SafeTAE-balanced": {
+    "variant": "SafeTAE-balanced",
+    "tau_leave": 0.3,
+    "tau_gain": 0.5,
+    "tau_harm": 0.2,
+    "risk_beta": 1.0,
+    "lambda_safe": 1.0,
+    "lambda_balanced": 0.75,
+    "lambda_aggressive": 0.05,
+    "cos_min": 0.0,
+    "hard_replacement": false,
+    "allow_aggressive": false
+  },
+  "selection_source": "validation_inner_calib_only",
+  "test_threshold_leakage": false,
+  "mrc_validation_params": {
+    "risk_threshold": 0.35,
+    "shrink_cap_params": {
+      "shrink": 0.4,
+      "cap_mult": 2.0,
+      "selection_score": 13.212884412317946
+    }
+  }
+}
