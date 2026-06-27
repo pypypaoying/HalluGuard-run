@@ -9,5 +9,5 @@
 - [x] Run Stage 4C safe-controller compact validation
 - [x] Inspect all output CSV/JSON summaries
 - [x] Write Stage 4 validation report
-- [ ] Append `results_halluguard.tsv`
-- [ ] Commit code, reports, and result artifacts
+- [x] Append `results_halluguard.tsv`
+- [x] Commit code, reports, and result artifacts
