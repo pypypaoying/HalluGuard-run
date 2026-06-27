@@ -9,5 +9,5 @@
 - [x] Run compact Stage 5 validation.
 - [x] Verify required output files.
 - [x] Write Stage 5 validation report.
-- [ ] Update candidate board and `results_halluguard.tsv`.
-- [ ] Commit code, reports, and result artifacts.
+- [x] Update candidate board and `results_halluguard.tsv`.
+- [x] Commit code, reports, and result artifacts.
