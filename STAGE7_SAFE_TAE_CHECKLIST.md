@@ -8,5 +8,5 @@
 - [x] Run compact validation command
 - [x] Verify required output files
 - [x] Write Stage 7 validation report
-- [ ] Update candidate board / ledger
-- [ ] Commit code, reports, and compact results
+- [x] Update candidate board / ledger
+- [x] Commit code, reports, and compact results
