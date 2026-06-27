@@ -9,5 +9,5 @@
 - [x] Run Stage 6 compact validation.
 - [x] Verify required MRC/TAE/FOMC output files.
 - [x] Write Stage 6 validation report.
-- [ ] Update candidate board and `results_halluguard.tsv`.
-- [ ] Commit code, reports, and result artifacts.
+- [x] Update candidate board and `results_halluguard.tsv`.
+- [x] Commit code, reports, and result artifacts.
