@@ -1,0 +1,77 @@
+{
+  "metrics_csv": "experiments\\halluguard\\results\\research_direction_validation\\forecast_inputs\\combined_metrics.csv",
+  "stage5_dir": "experiments\\halluguard\\results\\lrbn_sra_bp_stage5",
+  "output_dir": "experiments\\halluguard\\results\\stage6_mechanism",
+  "scope": "stage6_compact_mechanism_validation",
+  "datasets": [
+    "ETTh1",
+    "ETTm1"
+  ],
+  "backbones": [
+    "DLinear",
+    "PatchTST"
+  ],
+  "horizons": [
+    96,
+    192
+  ],
+  "seeds": [
+    2026
+  ],
+  "n_val_samples": 768,
+  "n_test_samples": 768,
+  "n_test_configs": 8,
+  "feature_schema": {
+    "datasets": [
+      "ETTh1",
+      "ETTm1"
+    ],
+    "backbones": [
+      "DLinear",
+      "PatchTST"
+    ],
+    "horizons": [
+      96,
+      192
+    ]
+  },
+  "slice_thresholds_validation_only": {
+    "g_l_q25": 1.0021988321737274,
+    "g_l_q75": 4.48421667243929,
+    "repair_low": 0.3,
+    "repair_high": 0.7,
+    "context_vol_q75": 0.8742031114404338,
+    "residual_norm_q75": 41.892764219594014
+  },
+  "safe_sra_params": {
+    "method_family": "short",
+    "anchor_mode": "last",
+    "tail_len": 16,
+    "tau_g": 5.265299801054961,
+    "tau_r": 0.8,
+    "tau_j": null,
+    "alpha": 0.75,
+    "K": "H_div_4",
+    "continuous": false,
+    "kg": 4.0,
+    "kr": 4.0,
+    "kj": 4.0
+  },
+  "balanced_sra_params": {
+    "method_family": "support",
+    "anchor_mode": "last",
+    "tail_len": 16,
+    "tau_g": 2.4260872328869336,
+    "tau_r": 0.8,
+    "tau_j": 0.3,
+    "alpha": 0.75,
+    "K": "H_div_4",
+    "continuous": false,
+    "kg": 4.0,
+    "kr": 4.0,
+    "kj": 4.0
+  },
+  "n_bootstrap": 2000,
+  "seed": 2026,
+  "test_threshold_leakage": false
+}

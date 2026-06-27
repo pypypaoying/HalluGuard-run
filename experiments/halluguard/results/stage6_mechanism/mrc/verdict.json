@@ -1,0 +1,19 @@
+{
+  "point_pass": true,
+  "harm_pass": true,
+  "coverage_pass": false,
+  "abstention_pass": true,
+  "non_sra_slice_pass": true,
+  "safe_go": false,
+  "test_threshold_leakage": false,
+  "selected_threshold": 0.35,
+  "alpha_by_horizon": {
+    "96": 10.0,
+    "192": 10.0
+  },
+  "shrink_cap_params": {
+    "shrink": 0.4,
+    "cap_mult": 2.0,
+    "selection_score": 13.212884412317946
+  }
+}

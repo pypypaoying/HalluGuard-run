@@ -1,0 +1,8 @@
+{
+  "protocol": "chronological_replay",
+  "buffer_size": 128,
+  "validation_buffer": "historical_matured",
+  "test_update_rule": "past test labels can be used only if local_index + horizon < current_index",
+  "band_weights_source": "validation_spectral_autocorr",
+  "test_threshold_leakage": false
+}

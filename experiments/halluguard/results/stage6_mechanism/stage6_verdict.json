@@ -1,0 +1,8 @@
+{
+  "stage": "stage6_mechanism",
+  "mrc_go": false,
+  "tae_go": false,
+  "fomc_go": false,
+  "test_threshold_leakage": false,
+  "decision": "promote_go_lines_only"
+}

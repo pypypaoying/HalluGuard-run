@@ -1,0 +1,2 @@
+split,failure_mode_accuracy,failure_mode_macro_f1,n_classes_test
+test,0.6236979166666666,0.6477509886148856,5

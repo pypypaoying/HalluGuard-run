@@ -1,0 +1,14 @@
+{
+  "oracle_gain_pct_vs_lrbn": -16.085977332427515,
+  "oracle_extra_pct_vs_sra_balanced": -13.847292223840766,
+  "router_gain_fraction": -0.5531888292067563,
+  "ranker_gain_fraction": -1.294698213822211,
+  "router_top1_accuracy": 0.3411458333333333,
+  "router_top2_hit": 0.5221354166666666,
+  "ranker_score_gain_spearman": 0.49459657739662405,
+  "router_harm_rate": 0.3059895833333333,
+  "ranker_harm_rate": 0.39453125,
+  "non_boundary_effective_candidates": 6,
+  "compact_go": false,
+  "test_threshold_leakage": false
+}
