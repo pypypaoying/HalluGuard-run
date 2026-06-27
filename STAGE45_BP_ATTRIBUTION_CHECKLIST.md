@@ -8,5 +8,5 @@
 - [x] Run full compact attribution with bootstrap.
 - [x] Verify required output files.
 - [x] Write Stage 4.5 summary report.
-- [ ] Append `results_halluguard.tsv`.
-- [ ] Commit code, reports, and forced result artifacts.
+- [x] Append `results_halluguard.tsv`.
+- [x] Commit code, reports, and forced result artifacts.
