@@ -9,4 +9,4 @@
 - [x] Verify required output files
 - [x] Write Stage 8 validation report
 - [x] Update candidate board / ledger
-- [ ] Commit code, reports, and results
+- [x] Commit code, reports, and results
