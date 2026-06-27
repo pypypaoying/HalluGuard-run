@@ -7,6 +7,7 @@
 - [x] Run Stage 4A BP-always harm attribution
 - [x] Run Stage 4B single-mechanism ablations
 - [x] Run Stage 4C safe-controller compact validation
+- [x] Run Stage 4E secondary learnable-alpha adapter validation
 - [x] Inspect all output CSV/JSON summaries
 - [x] Write Stage 4 validation report
 - [x] Append `results_halluguard.tsv`

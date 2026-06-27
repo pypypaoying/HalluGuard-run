@@ -124,6 +124,19 @@ Safe-controller failed the Stage 4 safe gate:
 
 The safe-controller successfully suppresses harm relative to BP-always, but it suppresses the useful BP mechanism too much. It is safer than many single-factor variants, but weaker than Stage 3 gated on both MSE improvement and q4 mechanism improvement.
 
+## Stage 4E: Learnable Alpha Adapter
+
+The secondary learnable-alpha experiment was also run. It learns alpha on validation only and evaluates on test only.
+
+| Method | Split | MSE | MAE | MSE delta % vs LRBN | Harm | Mean alpha |
+|---|---|---:|---:|---:|---:|---:|
+| adaptive-alpha-safe-loss | val | 8.435078 | 2.241743 | -4.116097 | 0.429688 | 0.267660 |
+| adaptive-alpha-safe-loss | test | 4.704777 | 1.638125 | -3.869534 | 0.385417 | 0.257851 |
+| global-alpha-safe-loss | val | 8.419233 | 2.230162 | -4.296210 | 0.453125 | 0.500000 |
+| global-alpha-safe-loss | test | 4.643981 | 1.621852 | -5.111746 | 0.423177 | 0.500000 |
+
+Adaptive alpha reduces harm relative to global alpha / BP-always (`38.54%` vs `42.32%`) while retaining a large MSE gain (`-3.87%`), but it is still a high-harm dense correction. It does not qualify as the safe default method. It should be treated as a performance-oriented appendix variant, not as the main TableA method.
+
 ## Best Interpretation
 
 Stage 4 gives a clean mechanism story:
@@ -135,7 +148,8 @@ Stage 4 gives a clean mechanism story:
    - MSE improvement: `-1.747470%`
    - harm: `0.218750`
    - q4 improvement: `5.396815%`
-5. The current combined safe-controller is over-conservative and does not beat Stage 3 gated.
+5. Learnable alpha confirms that alpha adaptation can reduce harm slightly versus global alpha, but not enough to become safe.
+6. The current combined safe-controller is over-conservative and does not beat Stage 3 gated.
 
 ## Decision
 
@@ -148,8 +162,8 @@ Recommended TableA rows:
 - `LRBN-BP-always` as performance ablation
 - `LRBN-BP-repair-gate` as harm-control ablation
 - optionally `LRBN-BP-gap-strength` as high-gain/high-harm ablation
+- optionally `adaptive-alpha-safe-loss` as a performance-oriented appendix variant
 
 Do not claim Stage 4 safe-controller is the final method. Claim should be narrowed:
 
 > Boundary Projection has strong post-LRBN correction power, but safe deployment requires sparse or repair-aware gating. Current mechanism-level safe controller reduces harm but over-suppresses the boundary repair signal.
-
