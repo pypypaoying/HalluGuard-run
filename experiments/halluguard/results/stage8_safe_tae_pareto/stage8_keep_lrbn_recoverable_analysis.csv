@@ -1,0 +1,10 @@
+variant,keep_count,keep_rate,recoverable_keep_count,recoverable_keep_rate_among_keep,mean_oracle_gain_kept,top_oracle_expert_among_recoverable
+SafeTAE-mrc-features,236,0.3072916666666667,236,1.0,0.8837064632644757,bp_always
+SafeTAE-no-mrc-features,248,0.3229166666666667,248,1.0,0.8659194451474305,bp_always
+SafeTAE-expert-thresholds,209,0.2721354166666667,209,1.0,0.8209345499938652,bp_always
+SafeTAE-expert-lambda,236,0.3072916666666667,236,1.0,0.8837064632644757,bp_always
+SafeTAE-slice-aware,307,0.3997395833333333,307,1.0,0.9171853778654062,bp_always
+SafeTAE-config-veto,345,0.44921875,345,1.0,0.9571167297006277,mrc_ridge_residual_blend
+SafeTAE-pareto-safe,345,0.44921875,345,1.0,0.9571167297006277,mrc_ridge_residual_blend
+SafeTAE-pareto-balanced,326,0.4244791666666667,326,1.0,0.9460652796615339,mrc_ridge_residual_blend
+SafeTAE-pareto-aggressive-diagnostic,185,0.24088541666666666,185,1.0,0.7496661302986369,mrc_ridge_residual_blend

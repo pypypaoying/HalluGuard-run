@@ -1,0 +1,42 @@
+{
+  "metrics_csv": "experiments\\halluguard\\results\\research_direction_validation\\forecast_inputs\\combined_metrics.csv",
+  "stage5_dir": "experiments\\halluguard\\results\\lrbn_sra_bp_stage5",
+  "stage6_dir": "experiments\\halluguard\\results\\stage6_mechanism",
+  "stage7_dir": "experiments\\halluguard\\results\\stage7_safe_tae",
+  "stage3_dir": "experiments\\halluguard\\results\\lrbn_bp_stage3",
+  "output_dir": "experiments\\halluguard\\results\\stage8_safe_tae_pareto",
+  "scope": "stage8_safe_tae_pareto_compact_validation",
+  "datasets": [
+    "ETTh1",
+    "ETTm1"
+  ],
+  "backbones": [
+    "DLinear",
+    "PatchTST"
+  ],
+  "horizons": [
+    96,
+    192
+  ],
+  "n_val_samples": 768,
+  "n_inner_train_samples": 536,
+  "n_inner_calib_samples": 232,
+  "n_test_samples": 768,
+  "n_test_configs": 8,
+  "slice_thresholds_validation_only": {
+    "g_l_q25": 1.0021988321737274,
+    "g_l_q75": 4.48421667243929,
+    "repair_low": 0.3,
+    "repair_high": 0.7,
+    "context_vol_q75": 0.8742031114404338,
+    "residual_norm_q75": 41.892764219594014,
+    "context_diff_std_q75": 0.8742031114404338,
+    "pred_context_var_ratio_q25": 0.08309241934256455,
+    "pred_context_var_ratio_q75": 0.47733022258528396,
+    "boundary_gap_q25": 1.0021988321737274,
+    "repair_q75": 0.46070531808021026
+  },
+  "n_bootstrap": 2000,
+  "seed": 2026,
+  "test_threshold_leakage": false
+}

@@ -1,0 +1,866 @@
+{
+  "SafeTAE-mrc-features": {
+    "variant": "SafeTAE-mrc-features",
+    "target": "safe",
+    "default_tau_gain": 0.45,
+    "default_tau_harm": 0.2,
+    "default_lambda": 0.5,
+    "beta_harm": 1.0,
+    "tau_gain": {},
+    "tau_harm": {},
+    "lambdas": {
+      "sra_safe": 0.5,
+      "sra_balanced": 0.25,
+      "sra_basic_ablation": 0.25,
+      "stage3_gated_bp": 0.5,
+      "mrc_ridge_abstain": 0.5,
+      "mrc_ridge_residual_blend": 0.25,
+      "volatility_shrink": 0.5,
+      "level_bias_bounded": 0.25,
+      "level_bias_light": 0.5,
+      "amplitude_scale_bounded": 0.25,
+      "ensemble_median": 0.5
+    },
+    "allowed_slices": {},
+    "blocked_configs": {},
+    "allow_aggressive": false
+  },
+  "SafeTAE-no-mrc-features": {
+    "variant": "SafeTAE-no-mrc-features",
+    "target": "safe",
+    "default_tau_gain": 0.45,
+    "default_tau_harm": 0.2,
+    "default_lambda": 0.5,
+    "beta_harm": 1.0,
+    "tau_gain": {},
+    "tau_harm": {},
+    "lambdas": {
+      "sra_safe": 0.5,
+      "sra_balanced": 0.25,
+      "sra_basic_ablation": 0.25,
+      "stage3_gated_bp": 0.5,
+      "mrc_ridge_abstain": 0.5,
+      "mrc_ridge_residual_blend": 0.25,
+      "volatility_shrink": 0.5,
+      "level_bias_bounded": 0.25,
+      "level_bias_light": 0.5,
+      "amplitude_scale_bounded": 0.25,
+      "ensemble_median": 0.5
+    },
+    "allowed_slices": {},
+    "blocked_configs": {},
+    "allow_aggressive": false
+  },
+  "SafeTAE-expert-thresholds": {
+    "variant": "SafeTAE-expert-thresholds",
+    "target": "safe",
+    "default_tau_gain": 0.45,
+    "default_tau_harm": 0.2,
+    "default_lambda": 0.5,
+    "beta_harm": 1.0,
+    "tau_gain": {
+      "sra_safe": 0.35,
+      "sra_balanced": 0.35,
+      "sra_basic_ablation": 0.35,
+      "stage3_gated_bp": 0.45,
+      "mrc_ridge_abstain": 0.45,
+      "mrc_ridge_residual_blend": 0.35,
+      "volatility_shrink": 0.35,
+      "level_bias_bounded": 0.35,
+      "level_bias_light": 0.35,
+      "amplitude_scale_bounded": 0.45,
+      "ensemble_median": 0.35
+    },
+    "tau_harm": {
+      "sra_safe": 0.25,
+      "sra_balanced": 0.25,
+      "sra_basic_ablation": 0.04,
+      "stage3_gated_bp": 0.2,
+      "mrc_ridge_abstain": 0.2,
+      "mrc_ridge_residual_blend": 0.25,
+      "volatility_shrink": 0.08,
+      "level_bias_bounded": 0.25,
+      "level_bias_light": 0.04,
+      "amplitude_scale_bounded": 0.2,
+      "ensemble_median": 0.04
+    },
+    "lambdas": {
+      "sra_safe": 0.5,
+      "sra_balanced": 0.25,
+      "sra_basic_ablation": 0.25,
+      "stage3_gated_bp": 0.5,
+      "mrc_ridge_abstain": 0.5,
+      "mrc_ridge_residual_blend": 0.25,
+      "volatility_shrink": 0.5,
+      "level_bias_bounded": 0.25,
+      "level_bias_light": 0.5,
+      "amplitude_scale_bounded": 0.25,
+      "ensemble_median": 0.5
+    },
+    "allowed_slices": {},
+    "blocked_configs": {},
+    "allow_aggressive": false
+  },
+  "SafeTAE-expert-lambda": {
+    "variant": "SafeTAE-expert-lambda",
+    "target": "safe",
+    "default_tau_gain": 0.45,
+    "default_tau_harm": 0.2,
+    "default_lambda": 0.5,
+    "beta_harm": 1.0,
+    "tau_gain": {
+      "sra_safe": 0.45,
+      "sra_balanced": 0.45,
+      "sra_basic_ablation": 0.45,
+      "stage3_gated_bp": 0.45,
+      "mrc_ridge_abstain": 0.45,
+      "mrc_ridge_residual_blend": 0.45,
+      "volatility_shrink": 0.45,
+      "level_bias_bounded": 0.45,
+      "level_bias_light": 0.45,
+      "amplitude_scale_bounded": 0.45,
+      "ensemble_median": 0.45
+    },
+    "tau_harm": {
+      "sra_safe": 0.2,
+      "sra_balanced": 0.2,
+      "sra_basic_ablation": 0.2,
+      "stage3_gated_bp": 0.2,
+      "mrc_ridge_abstain": 0.2,
+      "mrc_ridge_residual_blend": 0.2,
+      "volatility_shrink": 0.2,
+      "level_bias_bounded": 0.2,
+      "level_bias_light": 0.2,
+      "amplitude_scale_bounded": 0.2,
+      "ensemble_median": 0.2
+    },
+    "lambdas": {
+      "sra_safe": 0.5,
+      "sra_balanced": 0.25,
+      "sra_basic_ablation": 0.1,
+      "stage3_gated_bp": 0.5,
+      "mrc_ridge_abstain": 0.5,
+      "mrc_ridge_residual_blend": 0.25,
+      "volatility_shrink": 0.5,
+      "level_bias_bounded": 0.25,
+      "level_bias_light": 0.5,
+      "amplitude_scale_bounded": 0.25,
+      "ensemble_median": 0.5
+    },
+    "allowed_slices": {},
+    "blocked_configs": {},
+    "allow_aggressive": false
+  },
+  "SafeTAE-slice-aware": {
+    "variant": "SafeTAE-slice-aware",
+    "target": "safe",
+    "default_tau_gain": 0.45,
+    "default_tau_harm": 0.2,
+    "default_lambda": 0.5,
+    "beta_harm": 1.0,
+    "tau_gain": {
+      "sra_safe": 0.35,
+      "sra_balanced": 0.35,
+      "sra_basic_ablation": 0.35,
+      "stage3_gated_bp": 0.45,
+      "mrc_ridge_abstain": 0.45,
+      "mrc_ridge_residual_blend": 0.35,
+      "volatility_shrink": 0.35,
+      "level_bias_bounded": 0.35,
+      "level_bias_light": 0.35,
+      "amplitude_scale_bounded": 0.35,
+      "ensemble_median": 0.35
+    },
+    "tau_harm": {
+      "sra_safe": 0.25,
+      "sra_balanced": 0.25,
+      "sra_basic_ablation": 0.04,
+      "stage3_gated_bp": 0.2,
+      "mrc_ridge_abstain": 0.2,
+      "mrc_ridge_residual_blend": 0.25,
+      "volatility_shrink": 0.12,
+      "level_bias_bounded": 0.12,
+      "level_bias_light": 0.04,
+      "amplitude_scale_bounded": 0.25,
+      "ensemble_median": 0.25
+    },
+    "lambdas": {
+      "sra_safe": 0.5,
+      "sra_balanced": 0.25,
+      "sra_basic_ablation": 0.25,
+      "stage3_gated_bp": 0.5,
+      "mrc_ridge_abstain": 0.5,
+      "mrc_ridge_residual_blend": 0.25,
+      "volatility_shrink": 0.5,
+      "level_bias_bounded": 0.25,
+      "level_bias_light": 0.5,
+      "amplitude_scale_bounded": 0.25,
+      "ensemble_median": 0.5
+    },
+    "allowed_slices": {
+      "sra_safe": [
+        "high_gap_low_repair",
+        "q4_boundary"
+      ],
+      "sra_balanced": [
+        "high_gap_low_repair",
+        "q4_boundary"
+      ],
+      "sra_basic_ablation": [
+        "high_gap_low_repair",
+        "q4_boundary"
+      ],
+      "stage3_gated_bp": [
+        "high_gap_low_repair",
+        "q4_boundary"
+      ],
+      "mrc_ridge_abstain": [
+        "non_boundary",
+        "high_volatility",
+        "amplitude_mismatch",
+        "default"
+      ],
+      "mrc_ridge_residual_blend": [
+        "non_boundary",
+        "high_volatility",
+        "amplitude_mismatch",
+        "default"
+      ],
+      "volatility_shrink": [
+        "high_volatility",
+        "non_boundary",
+        "default"
+      ],
+      "level_bias_bounded": [
+        "high_gap_low_repair",
+        "q4_boundary",
+        "amplitude_mismatch"
+      ],
+      "level_bias_light": [
+        "high_gap_low_repair",
+        "q4_boundary",
+        "amplitude_mismatch"
+      ],
+      "amplitude_scale_bounded": [
+        "amplitude_mismatch",
+        "non_boundary",
+        "default"
+      ],
+      "amplitude_expand": [
+        "amplitude_mismatch",
+        "non_boundary",
+        "default"
+      ],
+      "ensemble_median": [
+        "high_gap_low_repair",
+        "q4_boundary",
+        "high_volatility",
+        "amplitude_mismatch",
+        "non_boundary"
+      ],
+      "bp_always": [
+        "high_gap_low_repair",
+        "q4_boundary"
+      ]
+    },
+    "blocked_configs": {},
+    "allow_aggressive": false
+  },
+  "SafeTAE-config-veto": {
+    "variant": "SafeTAE-config-veto",
+    "target": "safe",
+    "default_tau_gain": 0.45,
+    "default_tau_harm": 0.2,
+    "default_lambda": 0.5,
+    "beta_harm": 1.0,
+    "tau_gain": {
+      "sra_safe": 0.35,
+      "sra_balanced": 0.35,
+      "sra_basic_ablation": 0.35,
+      "stage3_gated_bp": 0.45,
+      "mrc_ridge_abstain": 0.45,
+      "mrc_ridge_residual_blend": 0.35,
+      "volatility_shrink": 0.35,
+      "level_bias_bounded": 0.35,
+      "level_bias_light": 0.35,
+      "amplitude_scale_bounded": 0.35,
+      "ensemble_median": 0.35
+    },
+    "tau_harm": {
+      "sra_safe": 0.25,
+      "sra_balanced": 0.25,
+      "sra_basic_ablation": 0.04,
+      "stage3_gated_bp": 0.2,
+      "mrc_ridge_abstain": 0.2,
+      "mrc_ridge_residual_blend": 0.25,
+      "volatility_shrink": 0.12,
+      "level_bias_bounded": 0.12,
+      "level_bias_light": 0.04,
+      "amplitude_scale_bounded": 0.25,
+      "ensemble_median": 0.25
+    },
+    "lambdas": {
+      "sra_safe": 0.5,
+      "sra_balanced": 0.25,
+      "sra_basic_ablation": 0.25,
+      "stage3_gated_bp": 0.5,
+      "mrc_ridge_abstain": 0.5,
+      "mrc_ridge_residual_blend": 0.25,
+      "volatility_shrink": 0.5,
+      "level_bias_bounded": 0.25,
+      "level_bias_light": 0.5,
+      "amplitude_scale_bounded": 0.25,
+      "ensemble_median": 0.5
+    },
+    "allowed_slices": {
+      "sra_safe": [
+        "high_gap_low_repair",
+        "q4_boundary"
+      ],
+      "sra_balanced": [
+        "high_gap_low_repair",
+        "q4_boundary"
+      ],
+      "sra_basic_ablation": [
+        "high_gap_low_repair",
+        "q4_boundary"
+      ],
+      "stage3_gated_bp": [
+        "high_gap_low_repair",
+        "q4_boundary"
+      ],
+      "mrc_ridge_abstain": [
+        "non_boundary",
+        "high_volatility",
+        "amplitude_mismatch",
+        "default"
+      ],
+      "mrc_ridge_residual_blend": [
+        "non_boundary",
+        "high_volatility",
+        "amplitude_mismatch",
+        "default"
+      ],
+      "volatility_shrink": [
+        "high_volatility",
+        "non_boundary",
+        "default"
+      ],
+      "level_bias_bounded": [
+        "high_gap_low_repair",
+        "q4_boundary",
+        "amplitude_mismatch"
+      ],
+      "level_bias_light": [
+        "high_gap_low_repair",
+        "q4_boundary",
+        "amplitude_mismatch"
+      ],
+      "amplitude_scale_bounded": [
+        "amplitude_mismatch",
+        "non_boundary",
+        "default"
+      ],
+      "amplitude_expand": [
+        "amplitude_mismatch",
+        "non_boundary",
+        "default"
+      ],
+      "ensemble_median": [
+        "high_gap_low_repair",
+        "q4_boundary",
+        "high_volatility",
+        "amplitude_mismatch",
+        "non_boundary"
+      ],
+      "bp_always": [
+        "high_gap_low_repair",
+        "q4_boundary"
+      ]
+    },
+    "blocked_configs": {
+      "sra_safe": [
+        "ETTh1/PatchTST/192",
+        "ETTh1/PatchTST/96",
+        "ETTm1/PatchTST/192"
+      ],
+      "sra_balanced": [
+        "ETTh1/DLinear/96",
+        "ETTh1/PatchTST/192",
+        "ETTh1/PatchTST/96",
+        "ETTm1/DLinear/192",
+        "ETTm1/DLinear/96",
+        "ETTm1/PatchTST/192",
+        "ETTm1/PatchTST/96"
+      ],
+      "sra_basic_ablation": [
+        "ETTh1/DLinear/96",
+        "ETTh1/PatchTST/192",
+        "ETTh1/PatchTST/96",
+        "ETTm1/PatchTST/192",
+        "ETTm1/PatchTST/96"
+      ],
+      "stage3_gated_bp": [
+        "ETTh1/PatchTST/192"
+      ],
+      "mrc_ridge_residual_blend": [
+        "ETTh1/DLinear/96",
+        "ETTh1/PatchTST/192",
+        "ETTh1/PatchTST/96",
+        "ETTm1/DLinear/192",
+        "ETTm1/DLinear/96",
+        "ETTm1/PatchTST/192",
+        "ETTm1/PatchTST/96"
+      ],
+      "volatility_shrink": [
+        "ETTh1/DLinear/192",
+        "ETTh1/DLinear/96",
+        "ETTm1/DLinear/192",
+        "ETTm1/DLinear/96"
+      ],
+      "level_bias_bounded": [
+        "ETTh1/DLinear/192",
+        "ETTh1/DLinear/96",
+        "ETTh1/PatchTST/192",
+        "ETTh1/PatchTST/96",
+        "ETTm1/DLinear/192",
+        "ETTm1/DLinear/96",
+        "ETTm1/PatchTST/192",
+        "ETTm1/PatchTST/96"
+      ],
+      "level_bias_light": [
+        "ETTh1/DLinear/192",
+        "ETTh1/DLinear/96",
+        "ETTh1/PatchTST/192",
+        "ETTh1/PatchTST/96",
+        "ETTm1/DLinear/192",
+        "ETTm1/DLinear/96",
+        "ETTm1/PatchTST/192",
+        "ETTm1/PatchTST/96"
+      ],
+      "amplitude_scale_bounded": [
+        "ETTh1/DLinear/192",
+        "ETTh1/DLinear/96",
+        "ETTm1/DLinear/192",
+        "ETTm1/DLinear/96"
+      ]
+    },
+    "allow_aggressive": false
+  },
+  "SafeTAE-pareto-safe": {
+    "variant": "SafeTAE-pareto-safe",
+    "target": "safe",
+    "default_tau_gain": 0.45,
+    "default_tau_harm": 0.2,
+    "default_lambda": 0.5,
+    "beta_harm": 1.0,
+    "tau_gain": {
+      "sra_safe": 0.35,
+      "sra_balanced": 0.35,
+      "sra_basic_ablation": 0.35,
+      "stage3_gated_bp": 0.45,
+      "mrc_ridge_abstain": 0.45,
+      "mrc_ridge_residual_blend": 0.35,
+      "volatility_shrink": 0.35,
+      "level_bias_bounded": 0.35,
+      "level_bias_light": 0.35,
+      "amplitude_scale_bounded": 0.35,
+      "ensemble_median": 0.35
+    },
+    "tau_harm": {
+      "sra_safe": 0.25,
+      "sra_balanced": 0.25,
+      "sra_basic_ablation": 0.04,
+      "stage3_gated_bp": 0.2,
+      "mrc_ridge_abstain": 0.2,
+      "mrc_ridge_residual_blend": 0.25,
+      "volatility_shrink": 0.12,
+      "level_bias_bounded": 0.12,
+      "level_bias_light": 0.04,
+      "amplitude_scale_bounded": 0.25,
+      "ensemble_median": 0.25
+    },
+    "lambdas": {
+      "sra_safe": 0.5,
+      "sra_balanced": 0.25,
+      "sra_basic_ablation": 0.25,
+      "stage3_gated_bp": 0.5,
+      "mrc_ridge_abstain": 0.5,
+      "mrc_ridge_residual_blend": 0.25,
+      "volatility_shrink": 0.5,
+      "level_bias_bounded": 0.25,
+      "level_bias_light": 0.5,
+      "amplitude_scale_bounded": 0.25,
+      "ensemble_median": 0.5
+    },
+    "allowed_slices": {
+      "sra_safe": [
+        "high_gap_low_repair",
+        "q4_boundary"
+      ],
+      "sra_balanced": [
+        "high_gap_low_repair",
+        "q4_boundary"
+      ],
+      "sra_basic_ablation": [
+        "high_gap_low_repair",
+        "q4_boundary"
+      ],
+      "stage3_gated_bp": [
+        "high_gap_low_repair",
+        "q4_boundary"
+      ],
+      "mrc_ridge_abstain": [
+        "non_boundary",
+        "high_volatility",
+        "amplitude_mismatch",
+        "default"
+      ],
+      "mrc_ridge_residual_blend": [
+        "non_boundary",
+        "high_volatility",
+        "amplitude_mismatch",
+        "default"
+      ],
+      "volatility_shrink": [
+        "high_volatility",
+        "non_boundary",
+        "default"
+      ],
+      "level_bias_bounded": [
+        "high_gap_low_repair",
+        "q4_boundary",
+        "amplitude_mismatch"
+      ],
+      "level_bias_light": [
+        "high_gap_low_repair",
+        "q4_boundary",
+        "amplitude_mismatch"
+      ],
+      "amplitude_scale_bounded": [
+        "amplitude_mismatch",
+        "non_boundary",
+        "default"
+      ],
+      "amplitude_expand": [
+        "amplitude_mismatch",
+        "non_boundary",
+        "default"
+      ],
+      "ensemble_median": [
+        "high_gap_low_repair",
+        "q4_boundary",
+        "high_volatility",
+        "amplitude_mismatch",
+        "non_boundary"
+      ],
+      "bp_always": [
+        "high_gap_low_repair",
+        "q4_boundary"
+      ]
+    },
+    "blocked_configs": {
+      "sra_safe": [
+        "ETTh1/PatchTST/192",
+        "ETTh1/PatchTST/96",
+        "ETTm1/PatchTST/192"
+      ],
+      "sra_balanced": [
+        "ETTh1/DLinear/96",
+        "ETTh1/PatchTST/192",
+        "ETTh1/PatchTST/96",
+        "ETTm1/DLinear/192",
+        "ETTm1/DLinear/96",
+        "ETTm1/PatchTST/192",
+        "ETTm1/PatchTST/96"
+      ],
+      "sra_basic_ablation": [
+        "ETTh1/DLinear/96",
+        "ETTh1/PatchTST/192",
+        "ETTh1/PatchTST/96",
+        "ETTm1/PatchTST/192",
+        "ETTm1/PatchTST/96"
+      ],
+      "stage3_gated_bp": [
+        "ETTh1/PatchTST/192"
+      ],
+      "mrc_ridge_residual_blend": [
+        "ETTh1/DLinear/96",
+        "ETTh1/PatchTST/192",
+        "ETTh1/PatchTST/96",
+        "ETTm1/DLinear/192",
+        "ETTm1/DLinear/96",
+        "ETTm1/PatchTST/192",
+        "ETTm1/PatchTST/96"
+      ],
+      "volatility_shrink": [
+        "ETTh1/DLinear/192",
+        "ETTh1/DLinear/96",
+        "ETTm1/DLinear/192",
+        "ETTm1/DLinear/96"
+      ],
+      "level_bias_bounded": [
+        "ETTh1/DLinear/192",
+        "ETTh1/DLinear/96",
+        "ETTh1/PatchTST/192",
+        "ETTh1/PatchTST/96",
+        "ETTm1/DLinear/192",
+        "ETTm1/DLinear/96",
+        "ETTm1/PatchTST/192",
+        "ETTm1/PatchTST/96"
+      ],
+      "level_bias_light": [
+        "ETTh1/DLinear/192",
+        "ETTh1/DLinear/96",
+        "ETTh1/PatchTST/192",
+        "ETTh1/PatchTST/96",
+        "ETTm1/DLinear/192",
+        "ETTm1/DLinear/96",
+        "ETTm1/PatchTST/192",
+        "ETTm1/PatchTST/96"
+      ],
+      "amplitude_scale_bounded": [
+        "ETTh1/DLinear/192",
+        "ETTh1/DLinear/96",
+        "ETTm1/DLinear/192",
+        "ETTm1/DLinear/96"
+      ]
+    },
+    "allow_aggressive": false
+  },
+  "SafeTAE-pareto-balanced": {
+    "variant": "SafeTAE-pareto-balanced",
+    "target": "balanced",
+    "default_tau_gain": 0.4,
+    "default_tau_harm": 0.25,
+    "default_lambda": 0.75,
+    "beta_harm": 1.0,
+    "tau_gain": {
+      "sra_safe": 0.35,
+      "sra_balanced": 0.35,
+      "sra_basic_ablation": 0.35,
+      "stage3_gated_bp": 0.35,
+      "mrc_ridge_abstain": 0.4,
+      "mrc_ridge_residual_blend": 0.4,
+      "volatility_shrink": 0.35,
+      "level_bias_bounded": 0.4,
+      "level_bias_light": 0.35,
+      "amplitude_scale_bounded": 0.4,
+      "ensemble_median": 0.35
+    },
+    "tau_harm": {
+      "sra_safe": 0.16,
+      "sra_balanced": 0.25,
+      "sra_basic_ablation": 0.25,
+      "stage3_gated_bp": 0.04,
+      "mrc_ridge_abstain": 0.25,
+      "mrc_ridge_residual_blend": 0.25,
+      "volatility_shrink": 0.12,
+      "level_bias_bounded": 0.25,
+      "level_bias_light": 0.25,
+      "amplitude_scale_bounded": 0.25,
+      "ensemble_median": 0.25
+    },
+    "lambdas": {
+      "sra_safe": 0.75,
+      "sra_balanced": 0.5,
+      "sra_basic_ablation": 0.5,
+      "stage3_gated_bp": 0.75,
+      "mrc_ridge_abstain": 0.75,
+      "mrc_ridge_residual_blend": 0.5,
+      "volatility_shrink": 0.75,
+      "level_bias_bounded": 0.5,
+      "level_bias_light": 0.75,
+      "amplitude_scale_bounded": 0.5,
+      "ensemble_median": 0.75
+    },
+    "allowed_slices": {
+      "sra_safe": [
+        "high_gap_low_repair",
+        "q4_boundary"
+      ],
+      "sra_balanced": [
+        "high_gap_low_repair",
+        "q4_boundary"
+      ],
+      "sra_basic_ablation": [
+        "high_gap_low_repair",
+        "q4_boundary"
+      ],
+      "stage3_gated_bp": [
+        "high_gap_low_repair",
+        "q4_boundary"
+      ],
+      "mrc_ridge_abstain": [
+        "non_boundary",
+        "high_volatility",
+        "amplitude_mismatch",
+        "default"
+      ],
+      "mrc_ridge_residual_blend": [
+        "non_boundary",
+        "high_volatility",
+        "amplitude_mismatch",
+        "default"
+      ],
+      "volatility_shrink": [
+        "high_volatility",
+        "non_boundary",
+        "default"
+      ],
+      "level_bias_bounded": [
+        "high_gap_low_repair",
+        "q4_boundary",
+        "amplitude_mismatch"
+      ],
+      "level_bias_light": [
+        "high_gap_low_repair",
+        "q4_boundary",
+        "amplitude_mismatch"
+      ],
+      "amplitude_scale_bounded": [
+        "amplitude_mismatch",
+        "non_boundary",
+        "default"
+      ],
+      "amplitude_expand": [
+        "amplitude_mismatch",
+        "non_boundary",
+        "default"
+      ],
+      "ensemble_median": [
+        "high_gap_low_repair",
+        "q4_boundary",
+        "high_volatility",
+        "amplitude_mismatch",
+        "non_boundary"
+      ],
+      "bp_always": [
+        "high_gap_low_repair",
+        "q4_boundary"
+      ]
+    },
+    "blocked_configs": {
+      "sra_safe": [
+        "ETTh1/PatchTST/192",
+        "ETTh1/PatchTST/96"
+      ],
+      "sra_balanced": [
+        "ETTh1/PatchTST/192",
+        "ETTh1/PatchTST/96",
+        "ETTm1/PatchTST/192"
+      ],
+      "sra_basic_ablation": [
+        "ETTh1/PatchTST/192",
+        "ETTh1/PatchTST/96",
+        "ETTm1/PatchTST/192"
+      ],
+      "stage3_gated_bp": [
+        "ETTh1/PatchTST/192"
+      ],
+      "mrc_ridge_residual_blend": [
+        "ETTh1/DLinear/96",
+        "ETTh1/PatchTST/192",
+        "ETTh1/PatchTST/96",
+        "ETTm1/DLinear/192",
+        "ETTm1/DLinear/96",
+        "ETTm1/PatchTST/192",
+        "ETTm1/PatchTST/96"
+      ],
+      "volatility_shrink": [
+        "ETTh1/DLinear/192",
+        "ETTh1/DLinear/96",
+        "ETTm1/DLinear/192",
+        "ETTm1/DLinear/96"
+      ],
+      "level_bias_bounded": [
+        "ETTh1/DLinear/192",
+        "ETTh1/DLinear/96",
+        "ETTh1/PatchTST/192",
+        "ETTh1/PatchTST/96",
+        "ETTm1/DLinear/192",
+        "ETTm1/DLinear/96",
+        "ETTm1/PatchTST/192",
+        "ETTm1/PatchTST/96"
+      ],
+      "level_bias_light": [
+        "ETTh1/DLinear/192",
+        "ETTh1/DLinear/96",
+        "ETTh1/PatchTST/192",
+        "ETTh1/PatchTST/96",
+        "ETTm1/DLinear/192",
+        "ETTm1/PatchTST/192",
+        "ETTm1/PatchTST/96"
+      ],
+      "amplitude_scale_bounded": [
+        "ETTh1/DLinear/192",
+        "ETTh1/DLinear/96",
+        "ETTm1/DLinear/192",
+        "ETTm1/DLinear/96"
+      ]
+    },
+    "allow_aggressive": false
+  },
+  "SafeTAE-pareto-aggressive-diagnostic": {
+    "variant": "SafeTAE-pareto-aggressive-diagnostic",
+    "target": "aggressive_diagnostic",
+    "default_tau_gain": 0.35,
+    "default_tau_harm": 0.3,
+    "default_lambda": 0.5,
+    "beta_harm": 1.0,
+    "tau_gain": {
+      "sra_safe": 0.35,
+      "sra_balanced": 0.35,
+      "sra_basic_ablation": 0.35,
+      "stage3_gated_bp": 0.35,
+      "mrc_ridge_abstain": 0.35,
+      "mrc_ridge_residual_blend": 0.35,
+      "volatility_shrink": 0.35,
+      "level_bias_bounded": 0.35,
+      "level_bias_light": 0.35,
+      "amplitude_scale_bounded": 0.35,
+      "amplitude_expand": 0.35,
+      "phase_shift_short": 0.35,
+      "ensemble_median": 0.35,
+      "bp_always": 0.35,
+      "raw": 0.35
+    },
+    "tau_harm": {
+      "sra_safe": 0.25,
+      "sra_balanced": 0.3,
+      "sra_basic_ablation": 0.04,
+      "stage3_gated_bp": 0.04,
+      "mrc_ridge_abstain": 0.04,
+      "mrc_ridge_residual_blend": 0.3,
+      "volatility_shrink": 0.08,
+      "level_bias_bounded": 0.25,
+      "level_bias_light": 0.04,
+      "amplitude_scale_bounded": 0.04,
+      "amplitude_expand": 0.3,
+      "phase_shift_short": 0.3,
+      "ensemble_median": 0.16,
+      "bp_always": 0.3,
+      "raw": 0.3
+    },
+    "lambdas": {
+      "sra_safe": 0.75,
+      "sra_balanced": 0.5,
+      "sra_basic_ablation": 0.1,
+      "stage3_gated_bp": 0.75,
+      "mrc_ridge_abstain": 0.75,
+      "mrc_ridge_residual_blend": 0.5,
+      "volatility_shrink": 0.75,
+      "level_bias_bounded": 0.75,
+      "level_bias_light": 0.75,
+      "amplitude_scale_bounded": 0.75,
+      "amplitude_expand": 0.1,
+      "phase_shift_short": 0.1,
+      "ensemble_median": 0.75,
+      "bp_always": 0.1,
+      "raw": 0.1
+    },
+    "allowed_slices": {},
+    "blocked_configs": {},
+    "allow_aggressive": true
+  }
+}

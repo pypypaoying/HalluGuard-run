@@ -1,0 +1,70 @@
+{
+  "LRBN": {
+    "ci95_low_mse_delta": 0.0,
+    "ci95_high_mse_delta": 0.0
+  },
+  "TAE-oracle-best": {
+    "ci95_low_mse_delta": -0.9871010990575995,
+    "ci95_high_mse_delta": -0.8032505349126827
+  },
+  "SRA-BP-safe": {
+    "ci95_low_mse_delta": -0.10428529361638128,
+    "ci95_high_mse_delta": -0.05819955040863004
+  },
+  "SRA-BP-balanced": {
+    "ci95_low_mse_delta": -0.15384714945596734,
+    "ci95_high_mse_delta": -0.09920247122496113
+  },
+  "MRC-ridge-abstain": {
+    "ci95_low_mse_delta": -0.0878756740161868,
+    "ci95_high_mse_delta": -0.03199010580917086
+  },
+  "SafeTAE-safe": {
+    "ci95_low_mse_delta": -0.1107679459821265,
+    "ci95_high_mse_delta": -0.0678027695467502
+  },
+  "TAE-router-stage6": {
+    "ci95_low_mse_delta": NaN,
+    "ci95_high_mse_delta": NaN
+  },
+  "TAE-ranker-stage6": {
+    "ci95_low_mse_delta": NaN,
+    "ci95_high_mse_delta": NaN
+  },
+  "SafeTAE-mrc-features": {
+    "ci95_low_mse_delta": -0.08298705995440032,
+    "ci95_high_mse_delta": -0.05205103346237081
+  },
+  "SafeTAE-no-mrc-features": {
+    "ci95_low_mse_delta": -0.07982545766721186,
+    "ci95_high_mse_delta": -0.05032688511601479
+  },
+  "SafeTAE-expert-thresholds": {
+    "ci95_low_mse_delta": -0.08801275277099636,
+    "ci95_high_mse_delta": -0.05681334344571153
+  },
+  "SafeTAE-expert-lambda": {
+    "ci95_low_mse_delta": -0.08167439273696359,
+    "ci95_high_mse_delta": -0.05125113430503512
+  },
+  "SafeTAE-slice-aware": {
+    "ci95_low_mse_delta": -0.06559710405967126,
+    "ci95_high_mse_delta": -0.04028027118609168
+  },
+  "SafeTAE-config-veto": {
+    "ci95_low_mse_delta": -0.05999645928833682,
+    "ci95_high_mse_delta": -0.0332483219208267
+  },
+  "SafeTAE-pareto-safe": {
+    "ci95_low_mse_delta": -0.05999645928833682,
+    "ci95_high_mse_delta": -0.0332483219208267
+  },
+  "SafeTAE-pareto-balanced": {
+    "ci95_low_mse_delta": -0.09009620617021612,
+    "ci95_high_mse_delta": -0.050076590898818316
+  },
+  "SafeTAE-pareto-aggressive-diagnostic": {
+    "ci95_low_mse_delta": -0.13011550465972682,
+    "ci95_high_mse_delta": -0.07636282295046241
+  }
+}
