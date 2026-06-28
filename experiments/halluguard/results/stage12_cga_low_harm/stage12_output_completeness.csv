@@ -1,0 +1,12 @@
+artifact,exists,bytes
+stage12_config.json,True,797
+stage12_candidate_metadata.csv,True,1580
+stage12_topk_metrics.csv,True,149
+stage12_calibration_grid.csv,True,660628
+stage12_overall.csv,True,2935
+stage12_per_config.csv,True,8412
+stage12_slice_metrics.csv,True,6399
+stage12_selection_distribution.csv,True,2450
+stage12_policies.json,True,2012
+stage12_verdict.json,True,1351
+summary.md,True,2638
