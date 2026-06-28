@@ -11,5 +11,5 @@
 - [x] Verify all required output files.
 - [x] Write Stage17 report.
 - [x] Update `CANDIDATE_BOARD.md`.
-- [ ] Append `results_halluguard.tsv`.
-- [ ] Commit code, reports, and results.
+- [x] Append `results_halluguard.tsv`.
+- [x] Commit code, reports, and results.
