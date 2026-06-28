@@ -1,0 +1,62 @@
+{
+  "LRBN": {
+    "ci95_low_delta_raw": 0.09920247122496112,
+    "ci95_high_delta_raw": 0.15384714945596734,
+    "p_bootstrap_delta_lt_zero": 0.0
+  },
+  "SRA-BP-safe": {
+    "ci95_low_delta_raw": 0.030494652598404566,
+    "ci95_high_delta_raw": 0.062377897899529355,
+    "p_bootstrap_delta_lt_zero": 0.0
+  },
+  "SRA-BP-balanced": {
+    "ci95_low_delta_raw": 0.0,
+    "ci95_high_delta_raw": 0.0,
+    "p_bootstrap_delta_lt_zero": 0.0
+  },
+  "RQA-PCA-Coef": {
+    "ci95_low_delta_raw": 0.0,
+    "ci95_high_delta_raw": 0.0,
+    "p_bootstrap_delta_lt_zero": 0.0
+  },
+  "RQA-DCT-Coef": {
+    "ci95_low_delta_raw": 0.0,
+    "ci95_high_delta_raw": 0.0,
+    "p_bootstrap_delta_lt_zero": 0.0
+  },
+  "RQA-HarmAwareCoef": {
+    "ci95_low_delta_raw": 0.0,
+    "ci95_high_delta_raw": 0.0,
+    "p_bootstrap_delta_lt_zero": 0.0
+  },
+  "NBSA-DCT-Shape": {
+    "ci95_low_delta_raw": 0.0,
+    "ci95_high_delta_raw": 0.0,
+    "p_bootstrap_delta_lt_zero": 0.0
+  },
+  "NBSA-RoughnessAdapter": {
+    "ci95_low_delta_raw": 0.0,
+    "ci95_high_delta_raw": 0.0,
+    "p_bootstrap_delta_lt_zero": 0.0
+  },
+  "NBSA-NonBoundaryOnly": {
+    "ci95_low_delta_raw": 0.0,
+    "ci95_high_delta_raw": 0.0,
+    "p_bootstrap_delta_lt_zero": 0.0
+  },
+  "NBSA-LocalShapeEnvelope": {
+    "ci95_low_delta_raw": 0.0,
+    "ci95_high_delta_raw": 0.0,
+    "p_bootstrap_delta_lt_zero": 0.0
+  },
+  "RQA-QuantileHead": {
+    "ci95_low_delta_raw": -0.02147843248941538,
+    "ci95_high_delta_raw": 0.05346734082061019,
+    "p_bootstrap_delta_lt_zero": 0.206
+  },
+  "RQA+NBSA": {
+    "ci95_low_delta_raw": 0.0,
+    "ci95_high_delta_raw": 0.0,
+    "p_bootstrap_delta_lt_zero": 0.0
+  }
+}

@@ -1,0 +1,14 @@
+artifact,exists,bytes
+stage19_config.json,True,1351
+family_oracle_targets.csv,True,509160
+atom_basis_report.csv,True,2788
+coefficient_fit_report.csv,True,1244
+calibration_grid.csv,True,1119358
+compact_variant_metrics.csv,True,3718
+compact_per_config.csv,True,13414
+compact_slice_metrics.csv,True,7892
+compact_segment_metrics.csv,True,2796
+complementarity_report.csv,True,255
+bootstrap_ci.json,True,1693
+stage19_verdict.json,True,1683
+summary.md,True,7749

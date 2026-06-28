@@ -1,0 +1,10 @@
+variant,family,basis_type,coefficient_r2,coefficient_sign_accuracy,policy_shrink,policy_cap_ratio,policy_coverage,policy_score_tau,policy_segment,policy_calibration_score,policy_rqa_shrink,policy_nbsa_shrink,policy_best_rqa,policy_best_nbsa
+RQA-PCA-Coef,residual_distribution,pca,-0.005418959386666478,0.5642526964560863,0.0,0.03,1.0,-inf,all,0.0,,,,
+RQA-DCT-Coef,residual_distribution,dct,-0.008819063038639552,0.6526700136923779,0.0,0.03,1.0,-inf,all,0.0,,,,
+RQA-HarmAwareCoef,residual_distribution,pca,-0.005418959386666478,0.5642526964560863,0.0,0.03,1.0,-inf,all,0.0,,,,
+NBSA-DCT-Shape,smoothing_teacher,dct,0.20288967082418452,0.6379464285714286,0.0,0.03,1.0,-inf,all,0.0,,,,
+NBSA-RoughnessAdapter,smoothing_teacher,dct,0.20288967082418452,0.6379464285714286,0.0,0.03,1.0,-inf,all,0.0,,,,
+NBSA-NonBoundaryOnly,smoothing_teacher,dct,0.20288967082418452,0.6379464285714286,0.0,0.03,1.0,-inf,all,0.0,,,,
+NBSA-LocalShapeEnvelope,smoothing_teacher,dct,0.20288967082418452,0.6379464285714286,0.0,0.03,1.0,-inf,early,0.0,,,,
+RQA-QuantileHead,residual_distribution,quantile_head,,,1.0,0.35,0.2,3.3296641132260008,all,-0.5514959938924123,,,,
+RQA+NBSA,combined,composed,,,1.0,0.03,1.0,-inf,all,0.0,0.0,0.0,RQA-QuantileHead,NBSA-DCT-Shape

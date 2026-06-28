@@ -1,0 +1,2 @@
+best_rqa_variant,best_nbsa_variant,rqa_gain_rate,nbsa_gain_rate,overlap_gain_rate,rqa_only_gain_rate,nbsa_only_gain_rate,combo_gain_rate,combo_gain_over_best_single_pp,test_threshold_leakage
+RQA-PCA-Coef,NBSA-DCT-Shape,0.0,0.0,0.0,0.0,0.0,0.0,0.0,False

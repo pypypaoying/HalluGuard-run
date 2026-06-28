@@ -1,0 +1,50 @@
+{
+  "stage": "stage19_performance_atom_validation",
+  "source_plan": "halluguard_stage19_performance_atom_validation_doc.md",
+  "metrics_csv": "experiments\\halluguard\\results\\research_direction_validation\\forecast_inputs\\combined_metrics.csv",
+  "stage5_dir": "experiments\\halluguard\\results\\lrbn_sra_bp_stage5",
+  "stage3_dir": "experiments\\halluguard\\results\\lrbn_bp_stage3",
+  "config": {
+    "seed": 2026,
+    "bootstrap": 2000,
+    "output_dir": "experiments\\halluguard\\results\\stage19_performance_atom_validation",
+    "n_pca_basis": 5,
+    "n_dct_basis": 8,
+    "ridge_alpha": 5.0,
+    "shrink_grid": [
+      0.0,
+      0.05,
+      0.1,
+      0.2,
+      0.35,
+      0.5,
+      0.75,
+      1.0
+    ],
+    "cap_grid": [
+      0.03,
+      0.05,
+      0.08,
+      0.1,
+      0.15,
+      0.2,
+      0.35
+    ],
+    "coverage_grid": [
+      1.0,
+      0.85,
+      0.7,
+      0.5,
+      0.35,
+      0.2
+    ],
+    "safe_harm": 0.03,
+    "safe_max_config_harm": 0.1,
+    "tradeoff_harm": 0.08,
+    "tradeoff_max_config_harm": 0.18
+  },
+  "compact_protocol": "ETTm1/ETTh1 x DLinear/PatchTST x horizons 96/192 x seed 2026",
+  "parent": "SRA-BP-balanced",
+  "calibration": "inner-train fits bases/models; inner-calib chooses policies; test only evaluates",
+  "test_threshold_leakage": false
+}
