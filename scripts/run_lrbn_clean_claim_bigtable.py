@@ -15,6 +15,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import shutil
 import subprocess
 import sys
 import time
@@ -432,6 +433,7 @@ def blocked_config_rows(cfg: Config, methods: Sequence[str], reason: str) -> Lis
 
 
 def write_outputs(rows: List[Dict[str, object]], output_dir: Path) -> None:
+    ensure_output_space(output_dir, rows)
     write_csv(rows, output_dir / "combined_metrics.csv")
     summary = summarize(rows)
     write_csv(summary, output_dir / "summary_by_method.csv")
@@ -440,8 +442,8 @@ def write_outputs(rows: List[Dict[str, object]], output_dir: Path) -> None:
     by_dataset = summarize_by(rows, "dataset")
     write_csv(by_dataset, output_dir / "summary_by_dataset.csv")
     payload = {"rows": rows, "summary_by_method": summary, "summary_by_backbone": by_backbone, "summary_by_dataset": by_dataset}
-    (output_dir / "combined_metrics.json").write_text(json.dumps(payload, indent=2), encoding="utf-8")
-    (output_dir / "summary.md").write_text(summary_md(rows, summary), encoding="utf-8")
+    atomic_write_text(output_dir / "combined_metrics.json", json.dumps(payload, indent=2))
+    atomic_write_text(output_dir / "summary.md", summary_md(rows, summary))
 
 
 def summarize(rows: List[Dict[str, object]]) -> List[Dict[str, object]]:
@@ -547,17 +549,39 @@ def read_jsonl(path: Path) -> List[dict]:
 def write_csv(rows: List[Dict[str, object]], path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     if not rows:
-        path.write_text("", encoding="utf-8")
+        atomic_write_text(path, "")
         return
     fields: List[str] = []
     for row in rows:
         for key in row:
             if key not in fields:
                 fields.append(key)
-    with path.open("w", encoding="utf-8", newline="") as handle:
+    tmp_path = path.with_name(path.name + ".tmp")
+    with tmp_path.open("w", encoding="utf-8", newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=fields)
         writer.writeheader()
         writer.writerows(rows)
+    tmp_path.replace(path)
+
+
+def atomic_write_text(path: Path, text: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp_path = path.with_name(path.name + ".tmp")
+    tmp_path.write_text(text, encoding="utf-8")
+    tmp_path.replace(path)
+
+
+def ensure_output_space(output_dir: Path, rows: List[Dict[str, object]]) -> None:
+    output_dir.mkdir(parents=True, exist_ok=True)
+    free_bytes = shutil.disk_usage(output_dir).free
+    # The table files are small, but leave a cushion because this function is
+    # called after every config while logs/predictions are still being produced.
+    estimated_bytes = max(1, len(rows)) * 4096 + 50_000_000
+    if free_bytes < estimated_bytes:
+        raise OSError(
+            f"low free disk space before writing table outputs: free={free_bytes} bytes, "
+            f"estimated_required={estimated_bytes} bytes, output_dir={output_dir}"
+        )
 
 
 def mean(values: Iterable[float]) -> float:

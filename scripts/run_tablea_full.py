@@ -416,7 +416,7 @@ def annotate_rows(rows: List[Dict[str, object]], args: argparse.Namespace) -> No
 def write_outputs(rows: List[Dict[str, object]], output_dir: Path) -> None:
     base.write_outputs(rows, output_dir)
     summary = base.summarize(rows)
-    (output_dir / "summary.md").write_text(summary_md(rows, summary), encoding="utf-8")
+    base.atomic_write_text(output_dir / "summary.md", summary_md(rows, summary))
 
 
 def summary_md(rows: List[Dict[str, object]], summary: List[Dict[str, object]]) -> str:
