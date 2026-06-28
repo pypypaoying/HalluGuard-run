@@ -1,0 +1,19 @@
+variant,selected_action,share
+Residual-Prior Convex Mixer,"residual_distribution,smoothing_teacher",0.8033854166666666
+Residual-Prior Convex Mixer,"residual_distribution,local_boundary",0.0703125
+Residual-Prior Convex Mixer,"residual_distribution,retrieval_memory",0.0546875
+Residual-Prior Convex Mixer,smoothing_teacher,0.03125
+Residual-Prior Convex Mixer,"smoothing_teacher,retrieval_memory",0.018229166666666668
+Residual-Prior Convex Mixer,"smoothing_teacher,residual_distribution",0.016927083333333332
+Residual-Prior Convex Mixer,"retrieval_memory,smoothing_teacher",0.0026041666666666665
+Residual-Prior Convex Mixer,retrieval_memory,0.0013020833333333333
+Residual-Prior Convex Mixer,none,0.0013020833333333333
+Time-Step Gated Hybrid Editor,time_step_hybrid,1.0
+Selection-Conditional Conformal Family Editor,residual_distribution,0.9283854166666666
+Selection-Conditional Conformal Family Editor,smoothing_teacher,0.06640625
+Selection-Conditional Conformal Family Editor,none,0.005208333333333333
+Retrieval-Augmented Local Residual Editor,retrieval_local_prior,1.0
+Conservative Challenger Comparator,residual_distribution,0.9283854166666666
+Conservative Challenger Comparator,smoothing_teacher,0.06640625
+Conservative Challenger Comparator,retrieval_memory,0.00390625
+Conservative Challenger Comparator,none,0.0013020833333333333

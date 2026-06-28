@@ -1,0 +1,17 @@
+{
+  "stage": "stage13_cga_decision_geometry",
+  "status": "compact_failed_stop_before_mini_extension",
+  "compact_pass": false,
+  "passed_variants": [],
+  "best_variant": "Selection-Conditional Conformal Family Editor",
+  "best_mse": 4.844879639426057,
+  "best_mae": 1.6804593331810989,
+  "best_mse_delta_pct_vs_lrbn": -1.0068731034946523,
+  "best_harm_rate": 0.4700520833333333,
+  "best_max_config_harm": 0.53125,
+  "best_oracle_gain_fraction": 0.02708487255700192,
+  "family_top2_hit": 0.6197916666666666,
+  "candidate_top2_hit": 0.09375,
+  "test_threshold_leakage": false,
+  "stop_reason": "no decision-geometry candidate passed compact gates"
+}
