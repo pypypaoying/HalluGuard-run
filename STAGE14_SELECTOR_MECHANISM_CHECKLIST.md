@@ -11,4 +11,4 @@
 - [x] Write final Stage 14 report.
 - [x] Update `CANDIDATE_BOARD.md`.
 - [x] Append `results_halluguard.tsv`.
-- [ ] Commit code, docs, and results.
+- [x] Commit code, docs, and results.
