@@ -11,5 +11,5 @@
 - [x] Verify required output artifacts.
 - [x] Write Stage 10 validation report.
 - [ ] Update `CANDIDATE_BOARD.md`.
-- [ ] Append `results_halluguard.tsv`.
-- [ ] Commit code, results, and reports.
+- [x] Append `results_halluguard.tsv`.
+- [x] Commit code, results, and reports.
