@@ -1,0 +1,11 @@
+artifact,exists,bytes
+stage16_config.json,True,1077
+stage16_training_log.csv,True,11414
+stage16_calibration_grid.csv,True,147243
+stage16_policies.json,True,1248
+stage16_overall.csv,True,5408
+stage16_per_config.csv,True,11867
+stage16_slice_metrics.csv,True,9080
+stage16_gate_table.csv,True,1547
+stage16_verdict.json,True,583
+summary.md,True,4279

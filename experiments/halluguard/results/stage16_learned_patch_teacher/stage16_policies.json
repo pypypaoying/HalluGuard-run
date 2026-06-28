@@ -1,0 +1,42 @@
+{
+  "H2L Learned Patch Residual Editor": {
+    "variant": "H2L Learned Patch Residual Editor",
+    "shrink": 0.25,
+    "residual_cap": 0.35,
+    "gate_quantile": 0.9,
+    "score_threshold": 2.0707091093063363,
+    "mix_residual": 1.0
+  },
+  "H6 Denoising Teacher Manifold Projector": {
+    "variant": "H6 Denoising Teacher Manifold Projector",
+    "shrink": 0.1,
+    "residual_cap": 0.35,
+    "gate_quantile": 0.9,
+    "score_threshold": 0.7310159556561302,
+    "mix_residual": 0.0
+  },
+  "H2H6 Learned Patch Teacher Hybrid": {
+    "variant": "H2H6 Learned Patch Teacher Hybrid",
+    "shrink": 0.25,
+    "residual_cap": 0.35,
+    "gate_quantile": 0.75,
+    "score_threshold": 0.755084332841744,
+    "mix_residual": 0.25
+  },
+  "H6-Safe Sparse Teacher Projector": {
+    "variant": "H6-Safe Sparse Teacher Projector",
+    "shrink": 0.25,
+    "residual_cap": 0.2,
+    "gate_quantile": 0.95,
+    "score_threshold": 0.800900545793887,
+    "mix_residual": 0.0
+  },
+  "H2H6-Safe Sparse Learned Teacher Hybrid": {
+    "variant": "H2H6-Safe Sparse Learned Teacher Hybrid",
+    "shrink": 0.25,
+    "residual_cap": 0.2,
+    "gate_quantile": 0.9,
+    "score_threshold": 1.3500088166909183,
+    "mix_residual": 0.5
+  }
+}
