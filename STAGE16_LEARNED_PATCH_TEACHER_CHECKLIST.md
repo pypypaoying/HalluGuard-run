@@ -11,5 +11,5 @@
 - [x] Verify output completeness.
 - [x] Write final report.
 - [x] Update `CANDIDATE_BOARD.md`.
-- [ ] Append `results_halluguard.tsv`.
-- [ ] Commit code, docs, and results.
+- [x] Append `results_halluguard.tsv`.
+- [x] Commit code, docs, and results.
