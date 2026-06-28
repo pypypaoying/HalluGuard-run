@@ -11,6 +11,6 @@
 - [x] If compact fails, stop before mini-extension/TableA.
 - [x] Write Stage 12 report.
 - [x] Update `CANDIDATE_BOARD.md`.
-- [ ] Append `results_halluguard.tsv`.
-- [ ] Commit code, results, and reports.
+- [x] Append `results_halluguard.tsv`.
+- [x] Commit code, results, and reports.
 
