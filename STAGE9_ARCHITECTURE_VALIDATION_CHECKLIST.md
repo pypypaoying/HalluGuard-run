@@ -8,4 +8,4 @@
 - [x] Verify required output files
 - [x] Write Stage 9 architecture validation report
 - [x] Update candidate board / ledger
-- [ ] Commit code, reports, and results
+- [x] Commit code, reports, and results
