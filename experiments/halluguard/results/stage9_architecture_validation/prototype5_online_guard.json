@@ -1,0 +1,6 @@
+{
+  "protocol_violations": [],
+  "n_protocol_violations": 0,
+  "test_threshold_leakage": false,
+  "label_time_rule": "test labels are added only if local_index + horizon < current_event_index; validation buffer is treated as historical matured data"
+}
