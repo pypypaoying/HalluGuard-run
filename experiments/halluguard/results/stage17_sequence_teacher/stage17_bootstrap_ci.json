@@ -1,0 +1,27 @@
+{
+  "SL-TMP Sequence Teacher Minimal-Norm Projection": {
+    "ci95_low_delta_raw": -0.0030616340060705817,
+    "ci95_high_delta_raw": 0.00046146967302437716,
+    "p_bootstrap_delta_lt_zero": 0.9305
+  },
+  "UTRE Uncertainty Teacher Residual Envelope": {
+    "ci95_low_delta_raw": 0.024176517252825176,
+    "ci95_high_delta_raw": 0.17535141995080378,
+    "p_bootstrap_delta_lt_zero": 0.0035
+  },
+  "SSP Structured Sequence Projector": {
+    "ci95_low_delta_raw": -0.0006853128810234687,
+    "ci95_high_delta_raw": 0.002462884867022063,
+    "p_bootstrap_delta_lt_zero": 0.13
+  },
+  "TRAP Teacher-Residual Agreement Projector": {
+    "ci95_low_delta_raw": -0.006082722845939395,
+    "ci95_high_delta_raw": -0.001371325684879991,
+    "p_bootstrap_delta_lt_zero": 0.9985
+  },
+  "IMDR Iterative Minimal-Norm Denoising Refiner": {
+    "ci95_low_delta_raw": -0.00467522171063937,
+    "ci95_high_delta_raw": -0.0010388098107229288,
+    "p_bootstrap_delta_lt_zero": 1.0
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "stage": "stage17_sequence_teacher_projection",
+  "source_plan": "halluguard_stage17_sequence_teacher_projection_validation_doc.md",
+  "compact_protocol": "ETTm1/ETTh1 x DLinear/PatchTST x horizons 96/192 x seed 2026",
+  "teacher_training_source": "validation_inner_train_proxy_no_original_train_assets_available",
+  "metrics_csv": "experiments\\halluguard\\results\\research_direction_validation\\forecast_inputs\\combined_metrics.csv",
+  "stage5_dir": "experiments\\halluguard\\results\\lrbn_sra_bp_stage5",
+  "stage7_dir": "experiments\\halluguard\\results\\stage7_safe_tae",
+  "stage14_dir": "experiments\\halluguard\\results\\stage14_selector_mechanism",
+  "stage15_dir": "experiments\\halluguard\\results\\stage15_endogenous_editors",
+  "stage16_dir": "experiments\\halluguard\\results\\stage16_learned_patch_teacher",
+  "stage3_dir": "experiments\\halluguard\\results\\lrbn_bp_stage3",
+  "stage17_config": {
+    "datasets": [
+      "ETTm1",
+      "ETTh1"
+    ],
+    "backbones": [
+      "DLinear",
+      "PatchTST"
+    ],
+    "horizons": [
+      96,
+      192
+    ],
+    "seed": 2026,
+    "bootstrap": 2000,
+    "output_dir": "experiments\\halluguard\\results\\stage17_sequence_teacher",
+    "teacher_epochs": 20,
+    "corrector_epochs": 24,
+    "batch_size": 128,
+    "lr_teacher": 0.0008,
+    "lr_corrector": 0.0008,
+    "weight_decay": 0.0001,
+    "patch_len": 16,
+    "d_model": 64,
+    "depth": 2,
+    "hidden_dim": 160,
+    "dropout": 0.05,
+    "max_delta_norm": 0.25,
+    "mask_l1": 0.001,
+    "refine_steps": 3,
+    "step_norm": 0.08,
+    "device": "auto"
+  },
+  "resolved_device": "cuda",
+  "n_bootstrap": 2000,
+  "test_threshold_leakage": false
+}

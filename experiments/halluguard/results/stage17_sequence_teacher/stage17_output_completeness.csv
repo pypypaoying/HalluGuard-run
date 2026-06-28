@@ -1,0 +1,16 @@
+artifact,exists,bytes
+stage17_config.json,True,1715
+stage17_training_log_teacher.csv,True,1274
+stage17_training_log_correctors.csv,True,2126
+stage17_calibration_grid.csv,True,145611
+stage17_policies.json,True,1476
+stage17_overall.csv,True,6804
+stage17_per_config.csv,True,11444
+stage17_slice_metrics.csv,True,9291
+stage17_mechanism_metrics.csv,True,1686
+stage17_alignment_metrics.csv,True,636
+stage17_uncertainty_metrics.csv,True,635
+stage17_bootstrap_ci.json,True,990
+stage17_gate_table.csv,True,1965
+stage17_verdict.json,True,778
+summary.md,True,6084

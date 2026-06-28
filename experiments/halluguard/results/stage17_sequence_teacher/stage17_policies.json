@@ -1,0 +1,47 @@
+{
+  "SL-TMP Sequence Teacher Minimal-Norm Projection": {
+    "variant": "SL-TMP Sequence Teacher Minimal-Norm Projection",
+    "shrink": 0.75,
+    "residual_cap": 0.2,
+    "gate_quantile": 0.75,
+    "score_threshold": 0.2500009834766388,
+    "width_coef": 1.0,
+    "energy_only_accept": false
+  },
+  "UTRE Uncertainty Teacher Residual Envelope": {
+    "variant": "UTRE Uncertainty Teacher Residual Envelope",
+    "shrink": 0.75,
+    "residual_cap": 0.35,
+    "gate_quantile": 0.75,
+    "score_threshold": 0.42984645813703537,
+    "width_coef": 0.5,
+    "energy_only_accept": false
+  },
+  "SSP Structured Sequence Projector": {
+    "variant": "SSP Structured Sequence Projector",
+    "shrink": 0.75,
+    "residual_cap": 0.1,
+    "gate_quantile": 0.9,
+    "score_threshold": 0.4520135521888733,
+    "width_coef": 1.0,
+    "energy_only_accept": false
+  },
+  "TRAP Teacher-Residual Agreement Projector": {
+    "variant": "TRAP Teacher-Residual Agreement Projector",
+    "shrink": 1.0,
+    "residual_cap": 0.05,
+    "gate_quantile": 0.75,
+    "score_threshold": 0.013515589194202903,
+    "width_coef": 1.0,
+    "energy_only_accept": false
+  },
+  "IMDR Iterative Minimal-Norm Denoising Refiner": {
+    "variant": "IMDR Iterative Minimal-Norm Denoising Refiner",
+    "shrink": 1.0,
+    "residual_cap": 0.1,
+    "gate_quantile": 0.75,
+    "score_threshold": 0.13213847756385805,
+    "width_coef": 1.0,
+    "energy_only_accept": true
+  }
+}

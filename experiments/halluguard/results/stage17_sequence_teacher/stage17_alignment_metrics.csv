@@ -1,0 +1,6 @@
+variant,residual_alignment_A_mean,residual_alignment_A_gt1_rate,direction_cosine_RT_mean,teacher_energy_mse_delta_spearman
+SL-TMP Sequence Teacher Minimal-Norm Projection,3.304302662344275,0.12760416666666666,,0.08862660434520513
+UTRE Uncertainty Teacher Residual Envelope,0.48972300222937265,0.3294270833333333,,0.06562286939242036
+SSP Structured Sequence Projector,-5.879179592116075,0.06640625,,0.15268289076014044
+TRAP Teacher-Residual Agreement Projector,8.427218585883613,0.13802083333333334,0.31368343469083143,0.2838214886637122
+IMDR Iterative Minimal-Norm Denoising Refiner,2.11304813097478,0.0234375,,0.6302246565224917

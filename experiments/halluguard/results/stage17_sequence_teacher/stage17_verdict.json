@@ -1,0 +1,18 @@
+{
+  "stage": "stage17_sequence_teacher_projection",
+  "status": "compact_failed_stop_before_mini_extension",
+  "compact_pass": false,
+  "mechanism_pass_any": false,
+  "passed_variants": [],
+  "mechanism_passed_variants": [],
+  "best_variant": "TRAP Teacher-Residual Agreement Projector",
+  "best_mse": 4.890482581896936,
+  "best_mae": 1.6810577369664148,
+  "best_mse_delta_pct_vs_lrbn": -0.07508981938178093,
+  "best_harm_rate": 0.08723958333333333,
+  "best_max_config_harm": 0.21875,
+  "best_oracle_gain_fraction": 0.0020199151027320487,
+  "teacher_training_source": "validation_inner_train_proxy_no_original_train_assets_available",
+  "test_threshold_leakage": false,
+  "stop_reason": "no Stage17 sequence teacher variant passed compact safe/tradeoff gates"
+}
