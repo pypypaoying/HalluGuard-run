@@ -1,0 +1,164 @@
+variant,selected_action,share
+Stage10 hard selector,keep_lrbn,0.8658854166666666
+Stage10 hard selector,volatility_shrink,0.1328125
+Stage10 hard selector,teacher_short_preserve_mid_smooth,0.0013020833333333333
+FamilyMix Selector,keep_lrbn,0.3307291666666667
+FamilyMix Selector,"teacher_short_preserve_mid_smooth,teacher_robust_trend",0.1796875
+FamilyMix Selector,teacher_short_preserve_mid_smooth,0.11328125
+FamilyMix Selector,"stage3_gated_bp,sra_safe",0.08333333333333333
+FamilyMix Selector,"sra_safe,stage3_gated_bp",0.053385416666666664
+FamilyMix Selector,mrc_ridge_abstain,0.037760416666666664
+FamilyMix Selector,"sra_basic_ablation,sra_balanced",0.028645833333333332
+FamilyMix Selector,"sra_basic_ablation,stage3_gated_bp",0.016927083333333332
+FamilyMix Selector,"stage3_gated_bp,sra_basic_ablation",0.013020833333333334
+FamilyMix Selector,stage3_gated_bp,0.013020833333333334
+FamilyMix Selector,"sra_safe,sra_balanced",0.01171875
+FamilyMix Selector,"teacher_short_preserve_mid_smooth,teacher_naive_smoothing",0.009114583333333334
+FamilyMix Selector,"sra_safe,stage3_gated_bp,teacher_short_preserve_mid_smooth,teacher_robust_trend",0.0078125
+FamilyMix Selector,"teacher_short_preserve_mid_smooth,stage3_gated_bp,teacher_robust_trend",0.0078125
+FamilyMix Selector,"volatility_shrink,teacher_short_preserve_mid_smooth,teacher_robust_trend",0.006510416666666667
+FamilyMix Selector,sra_safe,0.006510416666666667
+FamilyMix Selector,"teacher_short_preserve_mid_smooth,sra_safe,stage3_gated_bp,teacher_robust_trend",0.006510416666666667
+FamilyMix Selector,"teacher_short_preserve_mid_smooth,sra_safe,teacher_robust_trend,stage3_gated_bp",0.005208333333333333
+FamilyMix Selector,"teacher_short_preserve_mid_smooth,stage3_gated_bp,sra_safe,teacher_robust_trend",0.005208333333333333
+FamilyMix Selector,"stage3_gated_bp,sra_safe,teacher_short_preserve_mid_smooth,teacher_robust_trend",0.005208333333333333
+FamilyMix Selector,"teacher_short_preserve_mid_smooth,teacher_naive_smoothing,stage3_gated_bp,sra_safe",0.00390625
+FamilyMix Selector,"teacher_short_preserve_mid_smooth,sra_safe,teacher_naive_smoothing,sra_balanced",0.0026041666666666665
+FamilyMix Selector,"sra_basic_ablation,sra_safe",0.0026041666666666665
+FamilyMix Selector,"teacher_short_preserve_mid_smooth,teacher_median_smoothing,sra_safe,stage3_gated_bp",0.0026041666666666665
+FamilyMix Selector,"teacher_short_preserve_mid_smooth,sra_safe,teacher_naive_smoothing,stage3_gated_bp",0.0026041666666666665
+FamilyMix Selector,"teacher_short_preserve_mid_smooth,sra_safe,stage3_gated_bp",0.0026041666666666665
+FamilyMix Selector,"sra_safe,teacher_short_preserve_mid_smooth,stage3_gated_bp,teacher_robust_trend",0.0026041666666666665
+FamilyMix Selector,"teacher_short_preserve_mid_smooth,teacher_robust_trend,stage3_gated_bp,sra_safe",0.0026041666666666665
+FamilyMix Selector,"stage3_gated_bp,teacher_short_preserve_mid_smooth,teacher_robust_trend,sra_safe",0.0026041666666666665
+FamilyMix Selector,"teacher_short_preserve_mid_smooth,teacher_robust_trend,sra_safe,stage3_gated_bp",0.0013020833333333333
+FamilyMix Selector,"teacher_short_preserve_mid_smooth,stage3_gated_bp,sra_safe",0.0013020833333333333
+FamilyMix Selector,"teacher_short_preserve_mid_smooth,teacher_median_smoothing,stage3_gated_bp,sra_safe",0.0013020833333333333
+FamilyMix Selector,"stage3_gated_bp,teacher_short_preserve_mid_smooth",0.0013020833333333333
+FamilyMix Selector,"stage3_gated_bp,teacher_short_preserve_mid_smooth,sra_safe,teacher_median_smoothing",0.0013020833333333333
+FamilyMix Selector,"stage3_gated_bp,teacher_short_preserve_mid_smooth,teacher_robust_trend",0.0013020833333333333
+FamilyMix Selector,"sra_safe,teacher_short_preserve_mid_smooth,teacher_median_smoothing,stage3_gated_bp",0.0013020833333333333
+FamilyMix Selector,"sra_safe,sra_balanced,teacher_short_preserve_mid_smooth,teacher_median_smoothing",0.0013020833333333333
+FamilyMix Selector,"stage3_gated_bp,teacher_short_preserve_mid_smooth,sra_safe,teacher_robust_trend",0.0013020833333333333
+FamilyMix Selector,"teacher_short_preserve_mid_smooth,sra_safe,teacher_robust_trend",0.0013020833333333333
+FamilyMix Selector,"teacher_short_preserve_mid_smooth,teacher_median_smoothing,stage3_gated_bp",0.0013020833333333333
+FamilyMix Selector,"volatility_shrink,teacher_short_preserve_mid_smooth,teacher_naive_smoothing",0.0013020833333333333
+FamilyMix Selector,"teacher_short_preserve_mid_smooth,stage3_gated_bp,teacher_robust_trend,sra_safe",0.0013020833333333333
+FamilyMix Selector,volatility_shrink,0.0013020833333333333
+FamilyMix Selector,"stage3_gated_bp,sra_balanced,teacher_short_preserve_mid_smooth",0.0013020833333333333
+FamilyMix Selector,"sra_balanced,teacher_short_preserve_mid_smooth",0.0013020833333333333
+FamilyMix Selector,teacher_robust_trend,0.0013020833333333333
+FamilyMix Selector,"teacher_short_preserve_mid_smooth,teacher_median_smoothing,sra_balanced,stage3_gated_bp",0.0013020833333333333
+FamilyMix Selector,"teacher_short_preserve_mid_smooth,teacher_robust_trend,stage3_gated_bp,sra_balanced",0.0013020833333333333
+FamilyMix Selector,"teacher_short_preserve_mid_smooth,teacher_ema_smoothing,sra_safe,stage3_gated_bp",0.0013020833333333333
+FamilyMix Selector,"teacher_short_preserve_mid_smooth,teacher_ema_smoothing",0.0013020833333333333
+FamilyMix Selector,"teacher_short_preserve_mid_smooth,teacher_median_smoothing",0.0013020833333333333
+FamilyMix Selector,"stage3_gated_bp,teacher_short_preserve_mid_smooth,sra_safe",0.0013020833333333333
+FamilyMix Selector,"volatility_shrink,teacher_short_preserve_mid_smooth",0.0013020833333333333
+FamilyMix Selector,"sra_safe,sra_balanced,teacher_short_preserve_mid_smooth,teacher_robust_trend",0.0013020833333333333
+FamilyMix Selector,"teacher_short_preserve_mid_smooth,volatility_shrink",0.0013020833333333333
+Two-stage Cost-Sensitive Router,keep_lrbn,0.6497395833333334
+Two-stage Cost-Sensitive Router,teacher_short_preserve_mid_smooth,0.2109375
+Two-stage Cost-Sensitive Router,stage3_gated_bp,0.09244791666666667
+Two-stage Cost-Sensitive Router,sra_safe,0.045572916666666664
+Two-stage Cost-Sensitive Router,mrc_ridge_abstain,0.0013020833333333333
+ListSafe Top-k Selector,keep_lrbn,0.3203125
+ListSafe Top-k Selector,"teacher_short_preserve_mid_smooth,teacher_robust_trend",0.14192708333333334
+ListSafe Top-k Selector,teacher_short_preserve_mid_smooth,0.11979166666666667
+ListSafe Top-k Selector,"stage3_gated_bp,sra_safe",0.08203125
+ListSafe Top-k Selector,mrc_ridge_abstain,0.053385416666666664
+ListSafe Top-k Selector,"stage3_gated_bp,sra_safe,sra_basic_ablation",0.029947916666666668
+ListSafe Top-k Selector,"sra_safe,stage3_gated_bp",0.028645833333333332
+ListSafe Top-k Selector,"sra_basic_ablation,stage3_gated_bp,sra_balanced",0.016927083333333332
+ListSafe Top-k Selector,"sra_basic_ablation,sra_balanced,stage3_gated_bp",0.016927083333333332
+ListSafe Top-k Selector,stage3_gated_bp,0.016927083333333332
+ListSafe Top-k Selector,"stage3_gated_bp,sra_basic_ablation,sra_safe",0.01171875
+ListSafe Top-k Selector,"volatility_shrink,teacher_short_preserve_mid_smooth,teacher_robust_trend",0.010416666666666666
+ListSafe Top-k Selector,"teacher_short_preserve_mid_smooth,stage3_gated_bp,sra_safe",0.010416666666666666
+ListSafe Top-k Selector,"teacher_short_preserve_mid_smooth,sra_safe,stage3_gated_bp",0.009114583333333334
+ListSafe Top-k Selector,"sra_safe,stage3_gated_bp,sra_balanced",0.009114583333333334
+ListSafe Top-k Selector,"sra_safe,sra_balanced,stage3_gated_bp",0.0078125
+ListSafe Top-k Selector,"stage3_gated_bp,sra_safe,teacher_short_preserve_mid_smooth",0.0078125
+ListSafe Top-k Selector,"teacher_short_preserve_mid_smooth,stage3_gated_bp,teacher_robust_trend",0.0078125
+ListSafe Top-k Selector,"stage3_gated_bp,teacher_short_preserve_mid_smooth,teacher_robust_trend",0.0078125
+ListSafe Top-k Selector,"sra_basic_ablation,stage3_gated_bp,sra_safe",0.006510416666666667
+ListSafe Top-k Selector,"sra_safe,stage3_gated_bp,sra_basic_ablation",0.005208333333333333
+ListSafe Top-k Selector,sra_safe,0.005208333333333333
+ListSafe Top-k Selector,"teacher_short_preserve_mid_smooth,teacher_robust_trend,teacher_median_smoothing",0.005208333333333333
+ListSafe Top-k Selector,"stage3_gated_bp,teacher_short_preserve_mid_smooth,sra_safe",0.005208333333333333
+ListSafe Top-k Selector,"stage3_gated_bp,sra_basic_ablation,sra_balanced",0.00390625
+ListSafe Top-k Selector,"teacher_short_preserve_mid_smooth,teacher_naive_smoothing,teacher_ema_smoothing",0.00390625
+ListSafe Top-k Selector,"volatility_shrink,teacher_short_preserve_mid_smooth,teacher_naive_smoothing",0.0026041666666666665
+ListSafe Top-k Selector,"sra_safe,teacher_short_preserve_mid_smooth,stage3_gated_bp",0.0026041666666666665
+ListSafe Top-k Selector,"teacher_short_preserve_mid_smooth,sra_safe,teacher_naive_smoothing",0.0026041666666666665
+ListSafe Top-k Selector,"sra_safe,stage3_gated_bp,teacher_short_preserve_mid_smooth",0.0026041666666666665
+ListSafe Top-k Selector,"teacher_short_preserve_mid_smooth,teacher_robust_trend,teacher_ema_smoothing",0.0026041666666666665
+ListSafe Top-k Selector,"teacher_short_preserve_mid_smooth,teacher_robust_trend,stage3_gated_bp",0.0026041666666666665
+ListSafe Top-k Selector,"stage3_gated_bp,sra_safe,sra_balanced",0.0026041666666666665
+ListSafe Top-k Selector,"stage3_gated_bp,teacher_short_preserve_mid_smooth",0.0026041666666666665
+ListSafe Top-k Selector,"teacher_short_preserve_mid_smooth,sra_safe,teacher_robust_trend",0.0026041666666666665
+ListSafe Top-k Selector,"stage3_gated_bp,sra_balanced",0.0013020833333333333
+ListSafe Top-k Selector,sra_balanced,0.0013020833333333333
+ListSafe Top-k Selector,"teacher_short_preserve_mid_smooth,teacher_naive_smoothing,stage3_gated_bp",0.0013020833333333333
+ListSafe Top-k Selector,volatility_shrink,0.0013020833333333333
+ListSafe Top-k Selector,"sra_basic_ablation,sra_safe,sra_balanced",0.0013020833333333333
+ListSafe Top-k Selector,"teacher_short_preserve_mid_smooth,stage3_gated_bp",0.0013020833333333333
+ListSafe Top-k Selector,"teacher_short_preserve_mid_smooth,stage3_gated_bp,teacher_median_smoothing",0.0013020833333333333
+ListSafe Top-k Selector,"sra_safe,sra_balanced,teacher_short_preserve_mid_smooth",0.0013020833333333333
+ListSafe Top-k Selector,"sra_safe,teacher_short_preserve_mid_smooth,teacher_median_smoothing",0.0013020833333333333
+ListSafe Top-k Selector,"teacher_short_preserve_mid_smooth,teacher_median_smoothing,stage3_gated_bp",0.0013020833333333333
+ListSafe Top-k Selector,teacher_robust_trend,0.0013020833333333333
+ListSafe Top-k Selector,"teacher_short_preserve_mid_smooth,teacher_median_smoothing,teacher_robust_trend",0.0013020833333333333
+ListSafe Top-k Selector,"sra_safe,sra_balanced",0.0013020833333333333
+ListSafe Top-k Selector,"teacher_short_preserve_mid_smooth,teacher_robust_trend,teacher_naive_smoothing",0.0013020833333333333
+ListSafe Top-k Selector,"teacher_short_preserve_mid_smooth,teacher_naive_smoothing,teacher_robust_trend",0.0013020833333333333
+ListSafe Top-k Selector,"teacher_short_preserve_mid_smooth,teacher_median_smoothing,teacher_naive_smoothing",0.0013020833333333333
+ListSafe Top-k Selector,"teacher_short_preserve_mid_smooth,stage3_gated_bp,teacher_ema_smoothing",0.0013020833333333333
+ListSafe Top-k Selector,"teacher_short_preserve_mid_smooth,teacher_ema_smoothing,teacher_robust_trend",0.0013020833333333333
+ListSafe Top-k Selector,"teacher_short_preserve_mid_smooth,teacher_naive_smoothing,teacher_median_smoothing",0.0013020833333333333
+ListSafe Top-k Selector,"teacher_short_preserve_mid_smooth,teacher_ema_smoothing,teacher_naive_smoothing",0.0013020833333333333
+ListSafe Top-k Selector,"teacher_short_preserve_mid_smooth,stage3_gated_bp,teacher_naive_smoothing",0.0013020833333333333
+ListSafe Top-k Selector,"volatility_shrink,teacher_short_preserve_mid_smooth",0.0013020833333333333
+ListSafe Top-k Selector,"sra_safe,teacher_short_preserve_mid_smooth,sra_balanced",0.0013020833333333333
+ListSafe Top-k Selector,"sra_basic_ablation,sra_safe",0.0013020833333333333
+ListSafe Top-k Selector,"teacher_short_preserve_mid_smooth,teacher_robust_trend,sra_safe",0.0013020833333333333
+Retrieval-Prior Selector,keep_lrbn,0.4231770833333333
+Retrieval-Prior Selector,teacher_short_preserve_mid_smooth,0.1328125
+Retrieval-Prior Selector,"teacher_short_preserve_mid_smooth,teacher_robust_trend",0.109375
+Retrieval-Prior Selector,coverage_cap_fallback,0.07682291666666667
+Retrieval-Prior Selector,"stage3_gated_bp,sra_safe",0.0546875
+Retrieval-Prior Selector,"sra_safe,stage3_gated_bp",0.053385416666666664
+Retrieval-Prior Selector,"sra_basic_ablation,sra_balanced",0.028645833333333332
+Retrieval-Prior Selector,"teacher_short_preserve_mid_smooth,sra_safe",0.018229166666666668
+Retrieval-Prior Selector,"sra_safe,sra_balanced",0.014322916666666666
+Retrieval-Prior Selector,"teacher_short_preserve_mid_smooth,teacher_naive_smoothing",0.014322916666666666
+Retrieval-Prior Selector,stage3_gated_bp,0.013020833333333334
+Retrieval-Prior Selector,"teacher_short_preserve_mid_smooth,stage3_gated_bp",0.010416666666666666
+Retrieval-Prior Selector,"sra_basic_ablation,stage3_gated_bp",0.010416666666666666
+Retrieval-Prior Selector,"stage3_gated_bp,sra_basic_ablation",0.009114583333333334
+Retrieval-Prior Selector,"teacher_short_preserve_mid_smooth,teacher_median_smoothing",0.0078125
+Retrieval-Prior Selector,sra_safe,0.005208333333333333
+Retrieval-Prior Selector,"stage3_gated_bp,teacher_short_preserve_mid_smooth",0.00390625
+Retrieval-Prior Selector,"sra_safe,teacher_short_preserve_mid_smooth",0.00390625
+Retrieval-Prior Selector,"teacher_short_preserve_mid_smooth,teacher_ema_smoothing",0.0026041666666666665
+Retrieval-Prior Selector,"volatility_shrink,teacher_short_preserve_mid_smooth",0.0026041666666666665
+Retrieval-Prior Selector,"sra_basic_ablation,sra_safe",0.0026041666666666665
+Retrieval-Prior Selector,volatility_shrink,0.0013020833333333333
+Retrieval-Prior Selector,"teacher_short_preserve_mid_smooth,sra_balanced",0.0013020833333333333
+Bayes-Abstain Selector,keep_lrbn,0.6809895833333334
+Bayes-Abstain Selector,teacher_short_preserve_mid_smooth,0.12890625
+Bayes-Abstain Selector,stage3_gated_bp,0.055989583333333336
+Bayes-Abstain Selector,"stage3_gated_bp,sra_safe",0.020833333333333332
+Bayes-Abstain Selector,"sra_basic_ablation,stage3_gated_bp",0.01953125
+Bayes-Abstain Selector,"sra_basic_ablation,sra_balanced",0.018229166666666668
+Bayes-Abstain Selector,"teacher_short_preserve_mid_smooth,teacher_robust_trend",0.014322916666666666
+Bayes-Abstain Selector,"stage3_gated_bp,sra_basic_ablation",0.01171875
+Bayes-Abstain Selector,"sra_safe,stage3_gated_bp",0.010416666666666666
+Bayes-Abstain Selector,sra_safe,0.009114583333333334
+Bayes-Abstain Selector,"teacher_short_preserve_mid_smooth,sra_safe",0.0078125
+Bayes-Abstain Selector,"volatility_shrink,teacher_short_preserve_mid_smooth",0.0078125
+Bayes-Abstain Selector,"teacher_short_preserve_mid_smooth,stage3_gated_bp",0.005208333333333333
+Bayes-Abstain Selector,sra_basic_ablation,0.0026041666666666665
+Bayes-Abstain Selector,volatility_shrink,0.0026041666666666665
+Bayes-Abstain Selector,"sra_safe,teacher_short_preserve_mid_smooth",0.0026041666666666665
+Bayes-Abstain Selector,"stage3_gated_bp,teacher_short_preserve_mid_smooth",0.0013020833333333333

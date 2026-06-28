@@ -1,0 +1,14 @@
+artifact,exists,bytes
+stage14_config.json,True,862
+stage14_candidate_metadata.csv,True,1580
+stage14_selector_train_metrics.csv,True,679
+stage14_calibration_grid.csv,True,147912
+stage14_policies.json,True,2260
+stage14_overall.csv,True,3431
+stage14_per_config.csv,True,10728
+stage14_slice_metrics.csv,True,8412
+stage14_selection_distribution.csv,True,15350
+stage14_topk_metrics.csv,True,426
+stage14_gate_table.csv,True,1168
+stage14_verdict.json,True,651
+summary.md,True,3776
