@@ -23,9 +23,12 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Sequence
 
+import numpy as np
+
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 BASE_RUNNER_PATH = REPO_ROOT / "scripts" / "run_lrbn_clean_claim_bigtable.py"
+SRA_BP_PATH = REPO_ROOT / "experiments" / "halluguard" / "halluguard_sra_bp.py"
 LRBN_SCRIPT = REPO_ROOT / "scripts" / "run_halluguard_lrbn.py"
 CORE12_SCRIPT = REPO_ROOT / "scripts" / "run_core12_predictions.py"
 FETCH_DATA_SCRIPT = REPO_ROOT / "scripts" / "fetch_core_datasets.py"
@@ -39,6 +42,8 @@ DEFAULT_SEEDS = (2026, 2027, 2028)
 TABLEA_METHODS = (
     "raw_no_correction",
     "HalluGuard-LRBN",
+    "Safe-SRA",
+    "Balanced-SRA",
     "RevIN",
     "DishTS",
     "SAN",
@@ -63,6 +68,43 @@ ADAPTER_METHODS = (
     "SOLID-official-supported",
 )
 SMOOTHING_METHODS = ("matched_sparse_smoothing", "naive_smoothing", "ema_smoothing", "median_smoothing")
+SRA_METHODS = ("Safe-SRA", "Balanced-SRA", "LRBN-SRA-BP-safe", "LRBN-SRA-BP-balanced")
+SRA_PARAM_FILES = {
+    "Safe-SRA": "stage5_selected_safe_params.json",
+    "LRBN-SRA-BP-safe": "stage5_selected_safe_params.json",
+    "Balanced-SRA": "stage5_selected_balanced_params.json",
+    "LRBN-SRA-BP-balanced": "stage5_selected_balanced_params.json",
+}
+SRA_FALLBACK_PARAMS = {
+    "Safe-SRA": {
+        "method_family": "short",
+        "anchor_mode": "last",
+        "tail_len": 16,
+        "tau_g": 5.265299801054961,
+        "tau_r": 0.8,
+        "tau_j": None,
+        "alpha": 0.75,
+        "K": "H_div_4",
+        "continuous": False,
+        "kg": 4.0,
+        "kr": 4.0,
+        "kj": 4.0,
+    },
+    "Balanced-SRA": {
+        "method_family": "support",
+        "anchor_mode": "last",
+        "tail_len": 16,
+        "tau_g": 2.4260872328869336,
+        "tau_r": 0.8,
+        "tau_j": 0.3,
+        "alpha": 0.75,
+        "K": "H_div_4",
+        "continuous": False,
+        "kg": 4.0,
+        "kr": 4.0,
+        "kj": 4.0,
+    },
+}
 
 
 def load_base_runner():
@@ -76,6 +118,19 @@ def load_base_runner():
 
 
 base = load_base_runner()
+
+
+def load_sra_bp():
+    spec = importlib.util.spec_from_file_location("halluguard_sra_bp_core", SRA_BP_PATH)
+    if spec is None or spec.loader is None:
+        raise RuntimeError(f"cannot import SRA-BP core: {SRA_BP_PATH}")
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+sra_bp = load_sra_bp()
 
 
 @dataclass(frozen=True)
@@ -111,6 +166,7 @@ def main() -> None:
     parser.add_argument("--sop-plug-lr", type=float, default=1e-3)
     parser.add_argument("--sop-step-cseg-len", type=int, default=1)
     parser.add_argument("--sop-variable-cseg-len", type=int, default=1)
+    parser.add_argument("--sra-policy-dir", type=Path, default=Path("experiments/halluguard/results/lrbn_sra_bp_stage5"))
     parser.add_argument("--max-train-windows", type=int, default=0, help="<=0 means all train windows.")
     parser.add_argument("--max-eval-windows", type=int, default=0, help="<=0 means all eval windows.")
     parser.add_argument("--device", default="auto", choices=["auto", "cpu", "cuda"])
@@ -133,7 +189,20 @@ def main() -> None:
         backbones = ["DLinear", "PatchTST"]
         horizons = [96]
         seeds = [seeds[0]]
-        methods = [m for m in methods if m in ("raw_no_correction", "HalluGuard-LRBN", "RevIN", "SoP-step-wise", "naive_smoothing")]
+        methods = [
+            m
+            for m in methods
+            if m
+            in (
+                "raw_no_correction",
+                "HalluGuard-LRBN",
+                "Safe-SRA",
+                "Balanced-SRA",
+                "RevIN",
+                "SoP-step-wise",
+                "naive_smoothing",
+            )
+        ]
         args.epochs = min(args.epochs, 1)
         args.sop_plug_epochs = min(args.sop_plug_epochs, 1)
         args.max_train_windows = 128 if args.max_train_windows <= 0 else min(args.max_train_windows, 128)
@@ -187,9 +256,10 @@ def main() -> None:
 def run_config(cfg: Config, methods: Sequence[str], args: argparse.Namespace) -> List[Dict[str, object]]:
     rows: List[Dict[str, object]] = []
     lrbn_methods = [m for m in methods if m in ("raw_no_correction", "HalluGuard-LRBN")]
+    sra_methods = [m for m in methods if m in SRA_METHODS]
     adapter_methods = [m for m in methods if m in ADAPTER_METHODS]
     smoothing_methods = [m for m in methods if m in SMOOTHING_METHODS]
-    need_raw_predictions = bool(lrbn_methods or smoothing_methods)
+    need_raw_predictions = bool(lrbn_methods or sra_methods or smoothing_methods)
 
     if need_raw_predictions:
         try:
@@ -244,6 +314,9 @@ def run_config(cfg: Config, methods: Sequence[str], args: argparse.Namespace) ->
         except Exception as exc:
             reason = f"LRBN/raw group failed: {type(exc).__name__}: {exc}"
             rows.extend(base.blocked_row(cfg, method, reason) for method in lrbn_methods)
+
+    if sra_methods:
+        rows.extend(sra_rows_for_config(cfg, args, sra_methods))
 
     if adapter_methods:
         try:
@@ -323,7 +396,14 @@ def run_config(cfg: Config, methods: Sequence[str], args: argparse.Namespace) ->
             except Exception as exc:
                 rows.append(base.blocked_row(cfg, method, f"{type(exc).__name__}: {exc}"))
 
-    unknown_methods = [m for m in methods if m not in ("raw_no_correction", "HalluGuard-LRBN") and m not in ADAPTER_METHODS and m not in SMOOTHING_METHODS]
+    unknown_methods = [
+        m
+        for m in methods
+        if m not in ("raw_no_correction", "HalluGuard-LRBN")
+        and m not in SRA_METHODS
+        and m not in ADAPTER_METHODS
+        and m not in SMOOTHING_METHODS
+    ]
     for method in unknown_methods:
         rows.append(base.blocked_row(cfg, method, f"unknown TableA method: {method}"))
     return rows
@@ -393,6 +473,139 @@ def lrbn_rows_from_metrics(cfg: Config, out_dir: Path, requested_methods: Sequen
     return out
 
 
+def sra_rows_for_config(cfg: Config, args: argparse.Namespace, requested_methods: Sequence[str]) -> List[Dict[str, object]]:
+    raw_path = base.raw_prediction_path_for_cfg(args, cfg)
+    lrbn_path = (
+        args.output_dir
+        / "predictions"
+        / "halluguard_lrbn"
+        / cfg.tag
+        / f"{cfg.dataset}_{cfg.backbone}_{cfg.horizon}_unified_revin_rdn_hybrid.jsonl"
+    )
+    out_dir = args.output_dir / "predictions" / "sra_bp" / cfg.tag
+    out_dir.mkdir(parents=True, exist_ok=True)
+    rows: List[Dict[str, object]] = []
+    if not raw_path.exists():
+        reason = raw_prediction_blocker(args, cfg)
+        return [base.blocked_row(cfg, method, reason) for method in requested_methods]
+    if not lrbn_path.exists():
+        reason = f"LRBN prediction unavailable for SRA-BP: missing {lrbn_path}"
+        return [base.blocked_row(cfg, method, reason) for method in requested_methods]
+
+    try:
+        raw_samples, lrbn_samples = matched_raw_lrbn_samples(raw_path, lrbn_path)
+    except Exception as exc:
+        reason = f"SRA-BP sample alignment failed: {type(exc).__name__}: {exc}"
+        return [base.blocked_row(cfg, method, reason) for method in requested_methods]
+
+    for method in requested_methods:
+        try:
+            canonical = canonical_sra_method(method)
+            out_path = out_dir / f"{cfg.dataset}_{cfg.backbone}_{cfg.horizon}_{canonical}.jsonl"
+            if not (args.skip_existing and out_path.exists()):
+                params = load_sra_params(method, args.sra_policy_dir)
+                base.print_progress(f"write SRA-BP {cfg.tag} method={canonical}")
+                write_sra_predictions(cfg, raw_samples, lrbn_samples, out_path, canonical, params)
+            mse, mae = base.prediction_metrics(out_path)
+            rows.append(base.metric_row(cfg, canonical, mse, mae, "", "", str(out_path), str(out_dir), "completed", ""))
+        except Exception as exc:
+            rows.append(base.blocked_row(cfg, method, f"SRA-BP failed: {type(exc).__name__}: {exc}"))
+    return rows
+
+
+def canonical_sra_method(method: str) -> str:
+    if method == "LRBN-SRA-BP-safe":
+        return "Safe-SRA"
+    if method == "LRBN-SRA-BP-balanced":
+        return "Balanced-SRA"
+    return method
+
+
+def load_sra_params(method: str, policy_dir: Path) -> Dict[str, object]:
+    canonical = canonical_sra_method(method)
+    param_file = policy_dir / SRA_PARAM_FILES.get(method, SRA_PARAM_FILES.get(canonical, ""))
+    if param_file.exists():
+        return json.loads(param_file.read_text(encoding="utf-8"))
+    fallback = SRA_FALLBACK_PARAMS[canonical]
+    return dict(fallback)
+
+
+def matched_raw_lrbn_samples(raw_path: Path, lrbn_path: Path) -> tuple[List[dict], List[dict]]:
+    raw_by_key = {sample_key(s): s for s in base.read_jsonl(raw_path)}
+    lrbn_by_key = {sample_key(s): s for s in base.read_jsonl(lrbn_path)}
+    keys = sorted(set(raw_by_key) & set(lrbn_by_key))
+    if not keys:
+        raise ValueError(f"no matched sample keys between {raw_path} and {lrbn_path}")
+    missing_raw = sorted(set(lrbn_by_key) - set(raw_by_key))
+    missing_lrbn = sorted(set(raw_by_key) - set(lrbn_by_key))
+    if missing_raw or missing_lrbn:
+        raise ValueError(f"raw/LRBN key mismatch: missing_raw={len(missing_raw)}, missing_lrbn={len(missing_lrbn)}")
+    return [raw_by_key[k] for k in keys], [lrbn_by_key[k] for k in keys]
+
+
+def sample_key(sample: dict) -> str:
+    return f"{sample.get('split')}::{sample.get('sample_id')}"
+
+
+def write_sra_predictions(
+    cfg: Config,
+    raw_samples: Sequence[dict],
+    lrbn_samples: Sequence[dict],
+    out_path: Path,
+    method: str,
+    params: Dict[str, object],
+) -> None:
+    context = stack_trajs([s["context"] for s in raw_samples])
+    raw_pred = stack_trajs([s["prediction"] for s in raw_samples])
+    lrbn_pred = stack_trajs([s["prediction"] for s in lrbn_samples])
+    horizons = np.full(len(raw_samples), int(cfg.horizon), dtype=int)
+    corrected, aux = sra_bp.apply_sra_bp(context, raw_pred, lrbn_pred, horizons, params)
+
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    with out_path.open("w", encoding="utf-8") as handle:
+        for idx, (raw_sample, lrbn_sample) in enumerate(zip(raw_samples, lrbn_samples)):
+            horizon_len = len(lrbn_sample["prediction"])
+            updated = dict(lrbn_sample)
+            updated["prediction"] = round_prediction_like(corrected[idx, :horizon_len, :])
+            updated["method"] = method
+            updated["variant"] = method
+            updated["model"] = f"{cfg.backbone}+{method}"
+            updated["adapter_mode"] = "frozen_sparse_repair_aware_boundary_projection"
+            updated["sra_policy_source"] = "stage5_validation_selected_frozen_params"
+            updated["sra_params"] = params
+            updated["sra_strength"] = round(float(np.asarray(aux["strength"])[idx]), 8)
+            updated["test_threshold_leakage"] = False
+            handle.write(json.dumps(updated, ensure_ascii=False) + "\n")
+
+
+def stack_trajs(values: Sequence[object]) -> np.ndarray:
+    arrays = [one_traj(v) for v in values]
+    max_t = max(a.shape[0] for a in arrays)
+    max_c = max(a.shape[1] for a in arrays)
+    out = np.full((len(arrays), max_t, max_c), np.nan, dtype=float)
+    for idx, arr in enumerate(arrays):
+        out[idx, : arr.shape[0], : arr.shape[1]] = arr
+    return out
+
+
+def one_traj(value: object) -> np.ndarray:
+    arr = np.asarray(value, dtype=float)
+    if arr.ndim == 1:
+        return arr[:, None]
+    if arr.ndim == 2:
+        return arr
+    raise ValueError(f"expected trajectory [T] or [T,C], got shape={arr.shape}")
+
+
+def round_prediction_like(arr: np.ndarray) -> list:
+    arr = np.asarray(arr, dtype=float)
+    if arr.ndim != 2:
+        raise ValueError(f"expected corrected trajectory [T,C], got shape={arr.shape}")
+    if arr.shape[1] == 1:
+        return [round(float(v), 6) for v in arr[:, 0].tolist()]
+    return [[round(float(v), 6) for v in row] for row in arr.tolist()]
+
+
 def raw_prediction_blocker(args: argparse.Namespace, cfg: Config) -> str:
     out_dir = args.output_dir / "runs" / "halluguard_lrbn" / cfg.tag
     path = out_dir / "lrbn_metrics.csv"
@@ -434,7 +647,8 @@ def summary_md(rows: List[Dict[str, object]], summary: List[Dict[str, object]]) 
         "# HalluGuard-LRBN TableA Full Run",
         "",
         f"- Completed rows: {completed} / {len(rows)}",
-        "- Claim method: `HalluGuard-LRBN unified_revin_rdn_hybrid`",
+        "- HalluGuard parent: `HalluGuard-LRBN unified_revin_rdn_hybrid`",
+        "- SRA mainlines: `Safe-SRA`, `Balanced-SRA`",
         "- Protocol: offline TableA, no partially observed test target feedback",
         "- Test threshold leakage: False",
         "",
@@ -469,7 +683,7 @@ def write_run_contract(
 ) -> None:
     contract = {
         "table": "TableA",
-        "claim_method": "HalluGuard-LRBN unified_revin_rdn_hybrid",
+        "claim_method": "HalluGuard-LRBN parent with Safe-SRA and Balanced-SRA post-LRBN mainlines",
         "datasets": list(datasets),
         "backbones": list(backbones),
         "horizons": list(horizons),
@@ -482,12 +696,14 @@ def write_run_contract(
         "learning_rate": args.learning_rate,
         "san_pretrain_epochs": args.san_pretrain_epochs,
         "sop_plug_epochs": args.sop_plug_epochs,
+        "sra_policy_dir": str(args.sra_policy_dir),
         "max_train_windows": args.max_train_windows,
         "max_eval_windows": args.max_eval_windows,
         "val_test_contract": "validation split may calibrate policies; test split is evaluation-only",
         "test_threshold_leakage": False,
         "notes": [
             "TAFAS-online is excluded from TableA by default because it uses partially observed target feedback.",
+            "Safe-SRA and Balanced-SRA are frozen LRBN post-processors using Stage5 validation-selected SRA-BP policies; test rows are evaluation-only.",
             "SOLID-official-supported rows are recorded in the matrix; unsupported official adapter cells are explicit blocked rows.",
             "max_train_windows/max_eval_windows <= 0 means use all available windows.",
         ],
