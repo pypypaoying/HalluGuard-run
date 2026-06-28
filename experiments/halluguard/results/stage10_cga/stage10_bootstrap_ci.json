@@ -1,0 +1,27 @@
+{
+  "LRBN": {
+    "ci95_low_delta_raw": 0.0,
+    "ci95_high_delta_raw": 0.0,
+    "p_bootstrap_delta_lt_zero": 0.0
+  },
+  "SRA-BP-balanced": {
+    "ci95_low_delta_raw": -0.15384714945596734,
+    "ci95_high_delta_raw": -0.09920247122496113,
+    "p_bootstrap_delta_lt_zero": 1.0
+  },
+  "oracle_stage10_cga_full": {
+    "ci95_low_delta_raw": -2.087688531220485,
+    "ci95_high_delta_raw": -1.5644267072510374,
+    "p_bootstrap_delta_lt_zero": 1.0
+  },
+  "Safe-CGA": {
+    "ci95_low_delta_raw": -0.17839927136928213,
+    "ci95_high_delta_raw": 0.05080174658749906,
+    "p_bootstrap_delta_lt_zero": 0.865
+  },
+  "Balanced-CGA": {
+    "ci95_low_delta_raw": -0.17839927136928213,
+    "ci95_high_delta_raw": 0.05080174658749906,
+    "p_bootstrap_delta_lt_zero": 0.865
+  }
+}
