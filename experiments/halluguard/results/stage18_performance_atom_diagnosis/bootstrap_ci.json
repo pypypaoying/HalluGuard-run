@@ -1,0 +1,56 @@
+{
+  "tae_old_pool": {
+    "parent": "SRA-BP-balanced",
+    "ci95_low_delta_raw": -0.6023396098660017,
+    "ci95_high_delta_raw": -0.49953699302909377,
+    "p_bootstrap_delta_lt_zero": 1.0
+  },
+  "cga_new_family_pool": {
+    "parent": "SRA-BP-balanced",
+    "ci95_low_delta_raw": -1.0677485804437594,
+    "ci95_high_delta_raw": -0.8806825322742593,
+    "p_bootstrap_delta_lt_zero": 1.0
+  },
+  "union_full_pool": {
+    "parent": "SRA-BP-balanced",
+    "ci95_low_delta_raw": -1.9471765449362648,
+    "ci95_high_delta_raw": -1.4417097402110644,
+    "p_bootstrap_delta_lt_zero": 1.0
+  },
+  "sra_complement_atom_pool": {
+    "parent": "SRA-BP-balanced",
+    "ci95_low_delta_raw": -1.1116922947077699,
+    "ci95_high_delta_raw": -0.9232496293476825,
+    "p_bootstrap_delta_lt_zero": 1.0
+  },
+  "prototype_atom_0": {
+    "parent": "SRA-BP-balanced",
+    "ci95_low_delta_raw": 0.0004332038944847466,
+    "ci95_high_delta_raw": 0.04258459707765525,
+    "p_bootstrap_delta_lt_zero": 0.023
+  },
+  "prototype_atom_1": {
+    "parent": "SRA-BP-balanced",
+    "ci95_low_delta_raw": 0.0,
+    "ci95_high_delta_raw": 0.0,
+    "p_bootstrap_delta_lt_zero": 0.0
+  },
+  "prototype_atom_2": {
+    "parent": "SRA-BP-balanced",
+    "ci95_low_delta_raw": 0.006002217556716279,
+    "ci95_high_delta_raw": 0.05629762844235806,
+    "p_bootstrap_delta_lt_zero": 0.0075
+  },
+  "prototype_atom_3": {
+    "parent": "SRA-BP-balanced",
+    "ci95_low_delta_raw": 0.0066483952756243025,
+    "ci95_high_delta_raw": 0.071502908845092,
+    "p_bootstrap_delta_lt_zero": 0.008
+  },
+  "prototype_atom_4": {
+    "parent": "SRA-BP-balanced",
+    "ci95_low_delta_raw": 0.0,
+    "ci95_high_delta_raw": 0.0,
+    "p_bootstrap_delta_lt_zero": 0.0
+  }
+}

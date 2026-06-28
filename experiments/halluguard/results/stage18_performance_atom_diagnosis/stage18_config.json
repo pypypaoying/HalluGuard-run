@@ -1,0 +1,33 @@
+{
+  "stage": "stage18_performance_atom_diagnosis",
+  "source_plan": "halluguard_stage18_performance_atom_diagnosis_validation_doc.md",
+  "metrics_csv": "experiments\\halluguard\\results\\research_direction_validation\\forecast_inputs\\combined_metrics.csv",
+  "stage5_dir": "experiments\\halluguard\\results\\lrbn_sra_bp_stage5",
+  "stage3_dir": "experiments\\halluguard\\results\\lrbn_bp_stage3",
+  "config": {
+    "seed": 2026,
+    "bootstrap": 2000,
+    "output_dir": "experiments\\halluguard\\results\\stage18_performance_atom_diagnosis",
+    "n_atoms": 5,
+    "pca_components": 8,
+    "prototype_threshold_quantiles": [
+      0.5,
+      0.7,
+      0.8,
+      0.9,
+      0.95
+    ],
+    "prototype_shrinks": [
+      0.25,
+      0.5,
+      0.75,
+      1.0
+    ],
+    "max_harm_for_proto": 0.05,
+    "max_config_harm_for_proto": 0.1
+  },
+  "compact_protocol": "ETTm1/ETTh1 x DLinear/PatchTST x horizons 96/192 x seed 2026",
+  "main_parent": "SRA-BP-balanced",
+  "calibration": "distillation/prototype thresholds fit on validation inner-train and inner-calib only",
+  "test_threshold_leakage": false
+}

@@ -1,0 +1,17 @@
+artifact,exists,bytes
+stage18_config.json,True,1134
+parent_oracle_table.csv,True,17838
+family_leave_one_out.csv,True,1034
+only_family_oracle.csv,True,2985
+oracle_selected_candidates.csv,True,232309
+correction_vectors.parquet,True,1127683
+atom_pca_report.csv,True,388
+atom_cluster_report.csv,True,1972
+atom_alignment_report.csv,True,1009
+atom_slice_profile.csv,True,3672
+sra_complementarity_matrix.csv,True,8195
+atom_distillability_report.csv,True,1062
+prototype_atom_metrics.csv,True,1992
+bootstrap_ci.json,True,1756
+stage18_verdict.json,True,1615
+summary.md,True,7836
