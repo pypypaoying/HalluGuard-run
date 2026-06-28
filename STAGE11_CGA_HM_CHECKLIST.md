@@ -11,6 +11,6 @@
 - [x] If Stage 1 fails, stop before mini-extension.
 - [x] Write Stage 11 report.
 - [x] Update `CANDIDATE_BOARD.md`.
-- [ ] Append `results_halluguard.tsv`.
-- [ ] Commit code, results, and reports.
+- [x] Append `results_halluguard.tsv`.
+- [x] Commit code, results, and reports.
 
