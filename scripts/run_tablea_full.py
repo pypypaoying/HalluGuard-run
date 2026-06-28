@@ -192,110 +192,118 @@ def run_config(cfg: Config, methods: Sequence[str], args: argparse.Namespace) ->
     need_raw_predictions = bool(lrbn_methods or smoothing_methods)
 
     if need_raw_predictions:
-        lrbn_dir = args.output_dir / "predictions" / "halluguard_lrbn" / cfg.tag
-        raw_dir = args.output_dir / "predictions" / "raw" / cfg.tag
-        out_dir = args.output_dir / "runs" / "halluguard_lrbn" / cfg.tag
-        if not (args.skip_existing and (out_dir / "lrbn_metrics.csv").exists()):
-            base.print_progress(f"run LRBN/raw {cfg.tag} log={args.output_dir / 'logs' / f'{cfg.tag}_lrbn.log'}")
-            cmd = [
-                sys.executable,
-                str(LRBN_SCRIPT),
-                "--datasets",
-                cfg.dataset,
-                "--models",
-                cfg.backbone,
-                "--horizons",
-                str(cfg.horizon),
-                "--variants",
-                "unified_revin_rdn_hybrid",
-                "--data-root",
-                str(args.data_root),
-                "--prediction-dir",
-                str(lrbn_dir),
-                "--raw-prediction-dir",
-                str(raw_dir),
-                "--output-dir",
-                str(out_dir),
-                "--seq-len",
-                str(args.seq_len),
-                "--tail-len",
-                str(args.tail_len),
-                "--epochs",
-                str(args.epochs),
-                "--batch-size",
-                str(args.batch_size),
-                "--learning-rate",
-                str(args.learning_rate),
-                "--max-train-windows",
-                str(args.max_train_windows),
-                "--max-eval-windows",
-                str(args.max_eval_windows),
-                "--seed",
-                str(cfg.seed),
-                "--device",
-                args.device,
-                "--continue-on-error",
-            ]
-            base.run_command(cmd, args.output_dir / "logs" / f"{cfg.tag}_lrbn.log")
-        else:
-            base.print_progress(f"skip existing LRBN/raw {cfg.tag}")
-        rows.extend(lrbn_rows_from_metrics(cfg, out_dir, lrbn_methods))
+        try:
+            lrbn_dir = args.output_dir / "predictions" / "halluguard_lrbn" / cfg.tag
+            raw_dir = args.output_dir / "predictions" / "raw" / cfg.tag
+            out_dir = args.output_dir / "runs" / "halluguard_lrbn" / cfg.tag
+            if not (args.skip_existing and (out_dir / "lrbn_metrics.csv").exists()):
+                base.print_progress(f"run LRBN/raw {cfg.tag} log={args.output_dir / 'logs' / f'{cfg.tag}_lrbn.log'}")
+                cmd = [
+                    sys.executable,
+                    str(LRBN_SCRIPT),
+                    "--datasets",
+                    cfg.dataset,
+                    "--models",
+                    cfg.backbone,
+                    "--horizons",
+                    str(cfg.horizon),
+                    "--variants",
+                    "unified_revin_rdn_hybrid",
+                    "--data-root",
+                    str(args.data_root),
+                    "--prediction-dir",
+                    str(lrbn_dir),
+                    "--raw-prediction-dir",
+                    str(raw_dir),
+                    "--output-dir",
+                    str(out_dir),
+                    "--seq-len",
+                    str(args.seq_len),
+                    "--tail-len",
+                    str(args.tail_len),
+                    "--epochs",
+                    str(args.epochs),
+                    "--batch-size",
+                    str(args.batch_size),
+                    "--learning-rate",
+                    str(args.learning_rate),
+                    "--max-train-windows",
+                    str(args.max_train_windows),
+                    "--max-eval-windows",
+                    str(args.max_eval_windows),
+                    "--seed",
+                    str(cfg.seed),
+                    "--device",
+                    args.device,
+                    "--continue-on-error",
+                ]
+                base.run_command(cmd, args.output_dir / "logs" / f"{cfg.tag}_lrbn.log")
+            else:
+                base.print_progress(f"skip existing LRBN/raw {cfg.tag}")
+            rows.extend(lrbn_rows_from_metrics(cfg, out_dir, lrbn_methods))
+        except Exception as exc:
+            reason = f"LRBN/raw group failed: {type(exc).__name__}: {exc}"
+            rows.extend(base.blocked_row(cfg, method, reason) for method in lrbn_methods)
 
     if adapter_methods:
-        adapter_dir = args.output_dir / "predictions" / "tablea_adapters" / cfg.tag
-        if not (args.skip_existing and (adapter_dir / "manifest.csv").exists()):
-            base.print_progress(f"run TableA adapters {cfg.tag} methods={','.join(adapter_methods)}")
-            cmd = [
-                sys.executable,
-                str(CORE12_SCRIPT),
-                "--datasets",
-                cfg.dataset,
-                "--models",
-                cfg.backbone,
-                "--horizons",
-                str(cfg.horizon),
-                "--methods",
-                ",".join(adapter_methods),
-                "--data-root",
-                str(args.data_root),
-                "--output-dir",
-                str(adapter_dir),
-                "--seq-len",
-                str(args.seq_len),
-                "--epochs",
-                str(args.epochs),
-                "--batch-size",
-                str(args.batch_size),
-                "--learning-rate",
-                str(args.learning_rate),
-                "--san-period-len",
-                str(args.san_period_len),
-                "--san-station-lr",
-                str(args.san_station_lr),
-                "--san-pretrain-epochs",
-                str(args.san_pretrain_epochs),
-                "--sop-plug-epochs",
-                str(args.sop_plug_epochs),
-                "--sop-plug-lr",
-                str(args.sop_plug_lr),
-                "--sop-step-cseg-len",
-                str(args.sop_step_cseg_len),
-                "--sop-variable-cseg-len",
-                str(args.sop_variable_cseg_len),
-                "--max-train-windows",
-                str(args.max_train_windows),
-                "--max-eval-windows",
-                str(args.max_eval_windows),
-                "--seed",
-                str(cfg.seed),
-                "--device",
-                args.device,
-                "--continue-on-error",
-            ]
-            base.run_command(cmd, args.output_dir / "logs" / f"{cfg.tag}_tablea_adapters.log")
-        else:
-            base.print_progress(f"skip existing TableA adapters {cfg.tag}")
-        rows.extend(base.adapter_rows_from_predictions(cfg, adapter_dir, adapter_methods))
+        try:
+            adapter_dir = args.output_dir / "predictions" / "tablea_adapters" / cfg.tag
+            if not (args.skip_existing and (adapter_dir / "manifest.csv").exists()):
+                base.print_progress(f"run TableA adapters {cfg.tag} methods={','.join(adapter_methods)}")
+                cmd = [
+                    sys.executable,
+                    str(CORE12_SCRIPT),
+                    "--datasets",
+                    cfg.dataset,
+                    "--models",
+                    cfg.backbone,
+                    "--horizons",
+                    str(cfg.horizon),
+                    "--methods",
+                    ",".join(adapter_methods),
+                    "--data-root",
+                    str(args.data_root),
+                    "--output-dir",
+                    str(adapter_dir),
+                    "--seq-len",
+                    str(args.seq_len),
+                    "--epochs",
+                    str(args.epochs),
+                    "--batch-size",
+                    str(args.batch_size),
+                    "--learning-rate",
+                    str(args.learning_rate),
+                    "--san-period-len",
+                    str(args.san_period_len),
+                    "--san-station-lr",
+                    str(args.san_station_lr),
+                    "--san-pretrain-epochs",
+                    str(args.san_pretrain_epochs),
+                    "--sop-plug-epochs",
+                    str(args.sop_plug_epochs),
+                    "--sop-plug-lr",
+                    str(args.sop_plug_lr),
+                    "--sop-step-cseg-len",
+                    str(args.sop_step_cseg_len),
+                    "--sop-variable-cseg-len",
+                    str(args.sop_variable_cseg_len),
+                    "--max-train-windows",
+                    str(args.max_train_windows),
+                    "--max-eval-windows",
+                    str(args.max_eval_windows),
+                    "--seed",
+                    str(cfg.seed),
+                    "--device",
+                    args.device,
+                    "--continue-on-error",
+                ]
+                base.run_command(cmd, args.output_dir / "logs" / f"{cfg.tag}_tablea_adapters.log")
+            else:
+                base.print_progress(f"skip existing TableA adapters {cfg.tag}")
+            rows.extend(base.adapter_rows_from_predictions(cfg, adapter_dir, adapter_methods))
+        except Exception as exc:
+            reason = f"adapter group failed: {type(exc).__name__}: {exc}"
+            rows.extend(base.blocked_row(cfg, method, reason) for method in adapter_methods)
 
     if smoothing_methods:
         raw_path = base.raw_prediction_path_for_cfg(args, cfg)
