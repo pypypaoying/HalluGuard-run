@@ -60,6 +60,7 @@ Keep the environment on the data disk as well:
 
 ```bash
 conda create -p "${CONDA_ENVS}/halluguard-tablea" python=3.10 -y
+source "$(conda info --base)/etc/profile.d/conda.sh"
 conda activate "${CONDA_ENVS}/halluguard-tablea"
 python -m pip install --upgrade pip
 ```
@@ -113,6 +114,21 @@ PY
 
 If this fails, do not start TableA. Fix the PyTorch wheel first.
 
+If AutoDL prints `CondaError: Run 'conda init' before 'conda activate'`, initialize the current shell explicitly:
+
+```bash
+source "$(conda info --base)/etc/profile.d/conda.sh"
+conda activate "${CONDA_ENVS}/halluguard-tablea"
+which python
+python -c "import sys; print(sys.executable)"
+```
+
+You can also bypass shell activation by passing the environment Python to the runner:
+
+```bash
+export PYTHON_BIN="${CONDA_ENVS}/halluguard-tablea/bin/python"
+```
+
 ## 3. Run A One-Config Smoke Test
 
 Run a small smoke test before the expensive table. This command fetches the required ETTm1 data and plugin repos once, trains tiny models, and checks that `Safe-SRA` / `Balanced-SRA` can be produced from the same raw/LRBN predictions.
@@ -136,6 +152,7 @@ MAX_EVAL_WINDOWS=32 \
 FETCH_DATA=1 \
 FETCH_DATASETS=ETTm1 \
 FETCH_PLUGIN_REPOS=1 \
+PYTHON_BIN="${CONDA_ENVS}/halluguard-tablea/bin/python" \
 OUTPUT_DIR="${OUT}" \
 bash scripts/run_tablea_full.sh 2>&1 | tee "${OUT}/run.log"
 ```
@@ -188,6 +205,7 @@ MAX_EVAL_WINDOWS=0 \
 FETCH_DATA=1 \
 FETCH_DATASETS=ETTm1,ETTm2,ETTh1,ETTh2,Weather,Exchange,ECL,Traffic \
 FETCH_PLUGIN_REPOS=1 \
+PYTHON_BIN="${CONDA_ENVS}/halluguard-tablea/bin/python" \
 OUTPUT_DIR="${OUT}" \
 bash scripts/run_tablea_full.sh 2>&1 | tee "${OUT}/run.log"
 ```
@@ -303,6 +321,7 @@ MAX_EVAL_WINDOWS=0 \
 FETCH_DATA=0 \
 FETCH_PLUGIN_REPOS=0 \
 SKIP_EXISTING=1 \
+PYTHON_BIN="${CONDA_ENVS}/halluguard-tablea/bin/python" \
 OUTPUT_DIR="${OUT}" \
 bash scripts/run_tablea_full.sh 2>&1 | tee -a "${OUT}/resume.log"
 ```
@@ -351,4 +370,3 @@ du -sh /root/autodl-tmp/* 2>/dev/null | sort -h
 ### SOLID rows are blocked
 
 This is expected unless a faithful SOLID prediction-head adapter has been wired. Use the deployable 14-method table for completed comparisons, or keep SOLID in the matrix only as an explicit blocked audit row.
-
