@@ -50,6 +50,9 @@ python experiments/halluguard/run_mvp.py \
 
 For the full server workflow, see `RUN_BASELINE_TABLE.md`.
 
+For a fresh AutoDL server with outputs on the data disk, see
+[`docs/AUTODL_TABLEA_GUIDE.md`](docs/AUTODL_TABLEA_GUIDE.md).
+
 To run the unified 12-method same-configuration table:
 
 ```bash

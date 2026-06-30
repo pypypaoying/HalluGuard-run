@@ -37,6 +37,7 @@ MAX_TRAIN_WINDOWS="${MAX_TRAIN_WINDOWS:-0}"
 MAX_EVAL_WINDOWS="${MAX_EVAL_WINDOWS:-0}"
 
 FETCH_DATA="${FETCH_DATA:-1}"
+FETCH_DATASETS="${FETCH_DATASETS:-${DATASETS}}"
 FETCH_PLUGIN_REPOS="${FETCH_PLUGIN_REPOS:-1}"
 SKIP_EXISTING="${SKIP_EXISTING:-0}"
 SMOKE="${SMOKE:-0}"
@@ -70,7 +71,7 @@ CMD=(
 )
 
 if [[ "${FETCH_DATA}" == "1" ]]; then
-  CMD+=(--fetch-data)
+  CMD+=(--fetch-data --fetch-datasets "${FETCH_DATASETS}")
 fi
 if [[ "${FETCH_PLUGIN_REPOS}" == "1" ]]; then
   CMD+=(--fetch-plugin-repos)
